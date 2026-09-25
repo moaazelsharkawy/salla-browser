@@ -1,10 +1,15 @@
-import { BrandMark } from './BrandMark';
-
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <div className="brand-root flex min-w-0 items-center gap-2.5">
       <span className="brand-logo-shell shrink-0" aria-hidden="true">
-        <BrandMark className="brand-logo-vector" />
+        <img
+          src="/icons/icon-512.png"
+          alt=""
+          className="brand-logo"
+          width={44}
+          height={44}
+          decoding="async"
+        />
       </span>
       {!compact && (
         <div className="brand-copy min-w-0 leading-none">
