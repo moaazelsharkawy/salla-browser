@@ -1312,3 +1312,52 @@ body { overscroll-behavior-x: none; }
   .brand-logo-shell { width: 40px; height: 40px; border-radius: 12px; }
   .brand-logo { border-radius: 12px; }
 }
+
+/* v008: light-mode brand/header clarity + developer registration runtime config polish. */
+.brand-logo-shell {
+  background: color-mix(in srgb, var(--app-surface-2) 78%, #dfeaf2 22%);
+  border-radius: 14px;
+}
+.brand-logo-vector {
+  width: 86%;
+  height: 86%;
+  display: block;
+  overflow: visible;
+}
+.dark .brand-logo-shell {
+  background: color-mix(in srgb, #07131d 86%, var(--app-violet-soft) 14%);
+}
+
+:root:not(.dark) .header-icon,
+:root:not(.dark) .header-action {
+  background: #e4ebf1;
+}
+:root:not(.dark) .header-icon:hover,
+:root:not(.dark) .header-action:hover {
+  background: #dce6ee;
+  color: var(--app-accent-strong);
+}
+:root:not(.dark) .header-icon,
+:root:not(.dark) .header-action,
+:root:not(.dark) .header-action svg {
+  color: #22384d;
+}
+
+.developer-note {
+  gap: .9rem;
+  align-items: flex-start;
+}
+.developer-note > svg {
+  width: 21px !important;
+  height: 21px !important;
+  flex: 0 0 21px;
+  margin-top: .16rem;
+}
+.developer-note p {
+  font-size: .76rem;
+}
+
+@media (max-width: 640px) {
+  .brand-logo-vector { width: 88%; height: 88%; }
+  .developer-note > svg { width: 20px !important; height: 20px !important; flex-basis: 20px; }
+}

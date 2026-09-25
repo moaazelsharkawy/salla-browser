@@ -1,18 +1,18 @@
 {
-  "version": "2026.09.25.007",
+  "version": "2026.09.25.008",
   "name": "Salla Browser",
   "notes_ar": [
-    "إصلاح نهائي لنافذة حسابي لتظهر في منتصف الشاشة مع تشويش الخلفية",
-    "تبسيط اختيار الدولة وإزالة الأيقونة المكررة",
-    "تقليل حجم عنوان استكشف التطبيقات",
-    "تعزيز اللمسات الأرجوانية في الوضع الداكن",
-    "إضافة دخول وإنشاء حساب المطور عبر Google مع عرض تفعيل Passkey بعد التسجيل"
+    "تحسين وضوح شعار Salla Browser في الوضع الفاتح باستخدام علامة متجهية عالية الدقة",
+    "تعزيز تباين زري حسابي واللغة في الهيدر الفاتح",
+    "تكبير أيقونة تنبيه حساب المطور وتحسين وضوحها",
+    "إضافة إعداد Supabase عام وقت التشغيل لدعم تسجيل المطورين دون الاعتماد على VITE فقط",
+    "دعم متغيرات Supabase العامة على Vercel مع إبقاء مفاتيح service role خارج المتصفح"
   ],
   "notes_en": [
-    "Final centered account dialog fix with blurred backdrop",
-    "Simplified country picker trigger without duplicate icon",
-    "Smaller Explore apps heading",
-    "Stronger purple accents in dark mode",
-    "Google developer auth with passkey setup after registration"
+    "Sharper vector Salla Browser mark in light mode",
+    "Improved light header account and language contrast",
+    "Larger developer-account notice icon",
+    "Runtime public Supabase configuration for developer authentication",
+    "Vercel runtime support for public Supabase URL and anon key without exposing service-role secrets"
   ]
 }
