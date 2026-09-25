@@ -15,18 +15,18 @@ export const demoApps: DirectoryApp[] = [
     short_description_ar: 'شحن نجوم Telegram وPremium بسهولة', short_description_en: 'Telegram Stars and Premium in one place',
     description_ar: 'تطبيق Salla لشحن نجوم Telegram واشتراكات Premium مع طرق دفع متعددة وتجربة متابعة واضحة',
     description_en: 'Salla app for Telegram Stars and Premium with multiple payment methods and clear order tracking.',
-    icon_url: '/icons/icon-512.png', website_url: 'https://example.com', privacy_url: null, developer_name: 'Salla', category_id: 'cat-shopping', supported_countries: ['ALL'], status: 'published', verified: true, featured: true, embed_mode: 'iframe', health_status: 'online', installable: true, sort_order: 1, created_by: null, published_at: now, created_at: now, updated_at: now
+    icon_url: '/icons/icon-512.png', website_url: 'https://example.com', privacy_url: null, developer_name: 'Salla', category_id: 'cat-shopping', supported_countries: ['ALL'], status: 'published', suspension_reason: null, verified: true, featured: true, embed_mode: 'iframe', health_status: 'online', installable: true, sort_order: 1, created_by: null, published_at: now, created_at: now, updated_at: now
   },
   {
     id: 'demo-net', slug: 'salla-net', name: 'SallaNet', version: '1.0.0',
     short_description_ar: 'بوابة دفع وخدمات مرتبطة بمنظومة Salla', short_description_en: 'Payments and connected Salla services',
     description_ar: 'خدمة ضمن منظومة Salla للدفع والربط بين التطبيقات', description_en: 'A Salla ecosystem service for payments and app connectivity.',
-    icon_url: '/icons/icon-192.png', website_url: 'https://example.com', privacy_url: null, developer_name: 'Salla', category_id: 'cat-finance', supported_countries: ['ALL'], status: 'published', verified: true, featured: true, embed_mode: 'iframe', health_status: 'updated', installable: true, sort_order: 2, created_by: null, published_at: now, created_at: now, updated_at: now
+    icon_url: '/icons/icon-192.png', website_url: 'https://example.com', privacy_url: null, developer_name: 'Salla', category_id: 'cat-finance', supported_countries: ['ALL'], status: 'published', suspension_reason: null, verified: true, featured: true, embed_mode: 'iframe', health_status: 'updated', installable: true, sort_order: 2, created_by: null, published_at: now, created_at: now, updated_at: now
   },
   {
     id: 'demo-web3', slug: 'salla-web3', name: 'Salla Web3', version: '1.0.0',
     short_description_ar: 'مساحة Web3 لتطبيقات Salla', short_description_en: 'Salla Web3 app space',
     description_ar: 'واجهة مخصصة لتطبيقات وخدمات Web3 المتوافقة مع منظومة Salla', description_en: 'A dedicated space for Web3 apps and services connected to Salla.',
-    icon_url: '/icons/icon-192.png', website_url: 'https://example.com', privacy_url: null, developer_name: 'Salla', category_id: 'cat-web3', supported_countries: ['ALL'], status: 'published', verified: true, featured: false, embed_mode: 'iframe', health_status: 'new', installable: true, sort_order: 3, created_by: null, published_at: now, created_at: now, updated_at: now
+    icon_url: '/icons/icon-192.png', website_url: 'https://example.com', privacy_url: null, developer_name: 'Salla', category_id: 'cat-web3', supported_countries: ['ALL'], status: 'published', suspension_reason: null, verified: true, featured: false, embed_mode: 'iframe', health_status: 'new', installable: true, sort_order: 3, created_by: null, published_at: now, created_at: now, updated_at: now
   }
 ];
