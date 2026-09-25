@@ -1,0 +1,8 @@
+{
+  "version": "2026.09.25.001",
+  "name": "Salla Browser",
+  "notes": {
+    "ar": "الإصدار الأول: دليل تطبيقات Salla، البحث، الحساب، Passkey، طلبات الإدراج، لوحة الإدارة وPWA.",
+    "en": "Initial release: Salla app directory, search, accounts, passkeys, submissions, admin dashboard, and PWA."
+  }
+}
