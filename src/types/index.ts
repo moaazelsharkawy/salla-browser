@@ -45,6 +45,7 @@ export interface DirectoryApp {
   category_id: string | null;
   supported_countries: string[];
   status: AppStatus;
+  suspension_reason: string | null;
   verified: boolean;
   featured: boolean;
   embed_mode: EmbedMode;
