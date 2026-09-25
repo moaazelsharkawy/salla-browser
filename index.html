@@ -3,10 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#08111f" />
+    <meta name="theme-color" content="#0c1621" />
     <meta name="description" content="Salla Browser - متصفح تطبيقات منظومة Salla" />
     <link rel="icon" href="/icons/icon-192.png" />
     <title>Salla Browser</title>
+    <script>
+      (() => {
+        try {
+          const theme = localStorage.getItem('salla-browser-theme');
+          if (theme !== 'light') document.documentElement.classList.add('dark');
+          const meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', theme === 'light' ? '#f4f7fa' : '#0c1621');
+        } catch (_) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

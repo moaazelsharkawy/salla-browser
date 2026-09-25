@@ -8,8 +8,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('salla-browser-theme') === 'light' ? 'light' : 'dark'));
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
+    const isDark = theme === 'dark';
+    document.documentElement.classList.toggle('dark', isDark);
     localStorage.setItem('salla-browser-theme', theme);
+
+    const themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (themeMeta) themeMeta.content = isDark ? '#0c1621' : '#f4f7fa';
   }, [theme]);
 
   const value = useMemo(() => ({ theme, toggleTheme: () => setTheme((current) => current === 'dark' ? 'light' : 'dark') }), [theme]);

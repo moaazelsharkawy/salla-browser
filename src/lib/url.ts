@@ -23,11 +23,6 @@ export function looksLikeUrl(input: string): boolean {
   return /^https?:\/\//i.test(value) || /^([\w-]+\.)+[a-z]{2,}(\/.*)?$/i.test(value);
 }
 
-export function buildSearchUrl(query: string): string {
-  const base = (import.meta.env.VITE_DEFAULT_SEARCH_ENGINE as string | undefined) || 'https://www.google.com/search?q=';
-  return `${base}${encodeURIComponent(query.trim())}`;
-}
-
 export function safeHostname(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, '');

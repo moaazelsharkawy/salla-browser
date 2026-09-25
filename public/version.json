@@ -1,8 +1,8 @@
 {
-  "version": "2026.09.25.001",
+  "version": "2026.09.25.003",
   "name": "Salla Browser",
   "notes": {
-    "ar": "الإصدار الأول: دليل تطبيقات Salla، البحث، الحساب، Passkey، طلبات الإدراج، لوحة الإدارة وPWA.",
-    "en": "Initial release: Salla app directory, search, accounts, passkeys, submissions, admin dashboard, and PWA."
+    "ar": "تحسين شامل للواجهة: تصميم Borderless أخف، وضع فاتح وداكن متناسقان، حساب موحد بدون قائمة مكررة، نصوص أوضح، بحث بلا إطار، وفتح بحث الويب خارج التضمين.",
+    "en": "Full UI polish: lighter borderless design, consistent light/dark themes, unified account menu, stronger typography, frameless search, and external web search instead of blocked embedding."
   }
 }

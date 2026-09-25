@@ -4,7 +4,7 @@ import { Header } from './Header';
 
 export function AppShell() {
   return (
-    <div className="min-h-screen bg-app text-white">
+    <div className="min-h-screen bg-app">
       <Header />
       <main className="pb-24 md:pb-8"><Outlet /></main>
       <BottomNav />

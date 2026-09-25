@@ -9,7 +9,7 @@ export function SectionTitle({ icon: Icon, title, description, action }: { icon:
         </div>
         <div className="min-w-0">
           <h2 className="text-lg font-black sm:text-xl">{title}</h2>
-          {description && <p className="mt-1 text-xs font-semibold text-slate-400 sm:text-sm">{description}</p>}
+          {description && <p className="muted-text mt-1 text-xs font-bold sm:text-sm">{description}</p>}
         </div>
       </div>
       {action}
