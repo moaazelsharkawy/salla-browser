@@ -1,6 +1,19 @@
 -- Salla Browser v011 hotfix
 -- Repair legacy approved submissions whose app was left as draft by the old approval flow.
 
+-- The v010 target constraint was too strict: it required every 'new' submission
+-- to keep app_id NULL forever. After approval we intentionally link that submission
+-- to the published app, so allow app_id only once the new submission is approved.
+alter table public.app_submissions
+  drop constraint if exists app_submissions_target_check;
+
+alter table public.app_submissions
+  add constraint app_submissions_target_check check (
+    (submission_type = 'new' and (app_id is null or status = 'approved'))
+    or
+    (submission_type = 'update' and app_id is not null)
+  );
+
 -- 1) Link legacy approved submissions that were approved before app_id was stored.
 with legacy_matches as (
   select
