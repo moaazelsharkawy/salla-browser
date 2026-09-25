@@ -5,3 +5,5 @@ dist
 .DS_Store
 supabase/.temp
 android
+
+*.tsbuildinfo

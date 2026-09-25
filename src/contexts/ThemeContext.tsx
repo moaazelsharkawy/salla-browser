@@ -13,7 +13,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('salla-browser-theme', theme);
 
     const themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    if (themeMeta) themeMeta.content = isDark ? '#0c1621' : '#f4f7fa';
+    if (themeMeta) themeMeta.content = isDark ? '#0a1320' : '#f6f7fb';
   }, [theme]);
 
   const value = useMemo(() => ({ theme, toggleTheme: () => setTheme((current) => current === 'dark' ? 'light' : 'dark') }), [theme]);

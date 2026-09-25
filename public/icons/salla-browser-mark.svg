@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Salla Browser">
+  <defs>
+    <linearGradient id="bg" x1="80" y1="70" x2="430" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#111b31"/>
+      <stop offset="1" stop-color="#171735"/>
+    </linearGradient>
+    <linearGradient id="orbit" x1="95" y1="90" x2="420" y2="430" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#56dcff"/>
+      <stop offset="0.55" stop-color="#20aee5"/>
+      <stop offset="1" stop-color="#9a7cff"/>
+    </linearGradient>
+    <linearGradient id="route" x1="150" y1="130" x2="360" y2="385" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8ce9ff"/>
+      <stop offset="0.52" stop-color="#33b8eb"/>
+      <stop offset="1" stop-color="#9b7bff"/>
+    </linearGradient>
+  </defs>
+  <rect x="34" y="34" width="444" height="444" rx="136" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="157" fill="none" stroke="url(#orbit)" stroke-width="22" opacity=".95"/>
+  <circle cx="256" cy="99" r="10" fill="#78e4ff"/>
+  <circle cx="399" cy="322" r="10" fill="#977cff"/>
+  <circle cx="130" cy="350" r="8" fill="#31b7e9"/>
+  <path d="M335 166c-20-20-51-29-81-24-30 5-50 23-50 47 0 64 126 27 126 91 0 27-23 47-58 50-33 3-64-8-84-30" fill="none" stroke="url(#route)" stroke-width="34" stroke-linecap="round"/>
+  <path d="M190 299l-29 17 28 18" fill="none" stroke="#75e1fb" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M323 158l29-13-10 30" fill="none" stroke="#a087ff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,13 +1,15 @@
 import { Outlet } from 'react-router-dom';
 import { BottomNav } from './BottomNav';
 import { Header } from './Header';
+import { SessionIntro } from './SessionIntro';
 
 export function AppShell() {
   return (
-    <div className="min-h-screen bg-app">
+    <div className="app-shell min-h-screen bg-app">
       <Header />
-      <main className="pb-24 md:pb-8"><Outlet /></main>
+      <main className="app-main"><Outlet /></main>
       <BottomNav />
+      <SessionIntro />
     </div>
   );
 }

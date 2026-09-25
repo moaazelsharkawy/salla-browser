@@ -1,6 +1,7 @@
 import {
   Bookmark,
   ClipboardList,
+  Download,
   Languages,
   LayoutDashboard,
   LogIn,
@@ -16,11 +17,13 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { usePwaInstall } from '../hooks/usePwaInstall';
 
 export function AccountDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user, profile, isAdmin, signOut } = useAuth();
   const { language, toggleLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const { canInstall, install } = usePwaInstall();
 
   if (!open) return null;
 
@@ -42,6 +45,7 @@ export function AccountDialog({ open, onClose }: { open: boolean; onClose: () =>
         aria-label={language === 'ar' ? 'حسابي' : 'My account'}
         onMouseDown={(event) => event.stopPropagation()}
       >
+        <div className="account-dialog-handle" aria-hidden="true" />
         <div className="account-dialog-head">
           <div className="min-w-0">
             <p className="text-xl font-black">{language === 'ar' ? 'حسابي' : 'My account'}</p>
@@ -49,7 +53,7 @@ export function AccountDialog({ open, onClose }: { open: boolean; onClose: () =>
               {user?.email ?? (language === 'ar' ? 'سجل الدخول لحفظ تطبيقاتك وإعداداتك' : 'Sign in to save your apps and settings')}
             </p>
           </div>
-          <button className="icon-button h-10 w-10" onClick={onClose} aria-label={language === 'ar' ? 'إغلاق' : 'Close'}>
+          <button className="icon-button h-10 w-10 shrink-0" onClick={onClose} aria-label={language === 'ar' ? 'إغلاق' : 'Close'}>
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -74,6 +78,19 @@ export function AccountDialog({ open, onClose }: { open: boolean; onClose: () =>
             <LogIn className="h-4 w-4" />
             {language === 'ar' ? 'تسجيل الدخول' : 'Sign in'}
           </Link>
+        )}
+
+        {canInstall && (
+          <button
+            className="install-account-row mt-3 w-full"
+            onClick={async () => {
+              await install();
+              onClose();
+            }}
+          >
+            <Download className="h-5 w-5" />
+            <span>{language === 'ar' ? 'تثبيت Salla Browser' : 'Install Salla Browser'}</span>
+          </button>
         )}
 
         <div className="account-divider" />

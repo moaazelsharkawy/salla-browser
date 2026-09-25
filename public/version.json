@@ -1,8 +1,8 @@
 {
-  "version": "2026.09.25.003",
+  "version": "2026.09.25.004",
   "name": "Salla Browser",
   "notes": {
-    "ar": "تحسين شامل للواجهة: تصميم Borderless أخف، وضع فاتح وداكن متناسقان، حساب موحد بدون قائمة مكررة، نصوص أوضح، بحث بلا إطار، وفتح بحث الويب خارج التضمين.",
-    "en": "Full UI polish: lighter borderless design, consistent light/dark themes, unified account menu, stronger typography, frameless search, and external web search instead of blocked embedding."
+    "ar": "تحسين نهائي للهوية والتجاوب: منع التمرير الأفقي، لوجو حديث، هيدر أبسط بدون زر التثبيت، بحث أصغر بلا إطار، حسابي كنافذة سفلية على الهاتف، إزالة تباعد الحروف، مقدمة Web3 من صفحتين لكل جلسة، ومزج كحلي وسماوي مع أرجواني خفيف.",
+    "en": "Final identity and responsiveness polish: horizontal overflow fix, modern logo, simpler header without install clutter, smaller frameless search, mobile bottom-sheet account, zero artificial letter spacing, two-screen session intro, and a navy/cyan identity with subtle violet accents."
   }
 }
