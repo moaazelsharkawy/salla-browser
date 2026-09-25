@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /my-submissions
+Disallow: /login
+Disallow: /register
+Disallow: /submit
+Disallow: /favorites
+Disallow: /browse
+Sitemap: https://browser.salla-shop.com/sitemap.xml

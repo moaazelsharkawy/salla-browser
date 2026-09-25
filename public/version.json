@@ -1,8 +1,18 @@
 {
-  "version": "2026.09.25.004",
+  "version": "2026.09.25.005",
   "name": "Salla Browser",
-  "notes": {
-    "ar": "تحسين نهائي للهوية والتجاوب: منع التمرير الأفقي، لوجو حديث، هيدر أبسط بدون زر التثبيت، بحث أصغر بلا إطار، حسابي كنافذة سفلية على الهاتف، إزالة تباعد الحروف، مقدمة Web3 من صفحتين لكل جلسة، ومزج كحلي وسماوي مع أرجواني خفيف.",
-    "en": "Final identity and responsiveness polish: horizontal overflow fix, modern logo, simpler header without install clutter, smaller frameless search, mobile bottom-sheet account, zero artificial letter spacing, two-screen session intro, and a navy/cyan identity with subtle violet accents."
-  }
+  "notes_ar": [
+    "تحسين نافذة الحساب واختيار الدولة",
+    "توضيح أن الحساب مخصص للمطورين",
+    "هوية بصرية وأيقونات جديدة",
+    "تحسينات SEO شاملة وربط الدومين الرسمي",
+    "تحديث صلاحيات الباك اند وحسابات المطورين"
+  ],
+  "notes_en": [
+    "Centered account dialog and searchable country picker",
+    "Developer-only account positioning",
+    "New visual identity and icon set",
+    "Comprehensive SEO for the official domain",
+    "Backend role and submission policy updates"
+  ]
 }

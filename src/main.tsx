@@ -4,22 +4,9 @@ import { BrowserRouter } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
+import { CountryProvider } from './contexts/CountryContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import './index.css';
-
-registerSW({ immediate: true });
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ThemeProvider>
-      <LanguageProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </AuthProvider>
-      </LanguageProvider>
-    </ThemeProvider>
-  </React.StrictMode>
-);
+registerSW({ immediate:true });
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><ThemeProvider><LanguageProvider><CountryProvider><AuthProvider><BrowserRouter><App/></BrowserRouter></AuthProvider></CountryProvider></LanguageProvider></ThemeProvider></React.StrictMode>);

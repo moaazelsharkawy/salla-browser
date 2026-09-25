@@ -9,6 +9,7 @@ type AuthContextValue = {
   profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
+  isDeveloper: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -22,32 +23,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async (userId?: string | null) => {
-    if (!isSupabaseConfigured || !userId) {
-      setProfile(null);
-      return;
-    }
+    if (!isSupabaseConfigured || !userId) { setProfile(null); return; }
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
     setProfile((data as Profile | null) ?? null);
   }, []);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setLoading(false);
-      return;
-    }
-
+    if (!isSupabaseConfigured) { setLoading(false); return; }
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
       return loadProfile(data.session?.user.id);
     }).finally(() => setLoading(false));
-
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       void loadProfile(nextSession?.user.id);
     });
-
     return () => listener.subscription.unsubscribe();
   }, [loadProfile]);
 
@@ -57,8 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile,
     loading,
     isAdmin: profile?.role === 'admin',
+    isDeveloper: profile?.role === 'developer' || profile?.role === 'admin',
     refreshProfile: () => loadProfile(user?.id),
-    signOut: async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); }
+    signOut: async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); },
   }), [user, session, profile, loading, loadProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

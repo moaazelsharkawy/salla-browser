@@ -14,8 +14,8 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const RP_ID = Deno.env.get('PASSKEY_RP_ID') || 'localhost';
-const EXPECTED_ORIGIN = Deno.env.get('PASSKEY_ORIGIN') || 'http://localhost:5173';
+const RP_ID = Deno.env.get('PASSKEY_RP_ID') || 'browser.salla-shop.com';
+const EXPECTED_ORIGINS = (Deno.env.get('PASSKEY_ORIGIN') || 'https://browser.salla-shop.com').split(',').map((value) => value.trim()).filter(Boolean);
 const RP_NAME = Deno.env.get('PASSKEY_RP_NAME') || 'Salla Browser';
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false, autoRefreshToken: false } });
 
@@ -77,6 +77,8 @@ Deno.serve(async (request) => {
     if (action === 'register_options') {
       const user = await authenticatedUser(request);
       if (!user?.email) return json({ ok: false, error: 'AUTH_REQUIRED' }, 401);
+      const { data: developerProfile } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle();
+      if (!developerProfile || !['developer','admin'].includes(String(developerProfile.role))) return json({ ok: false, error: 'DEVELOPER_ACCOUNT_REQUIRED' }, 403);
       const { data: credentials, error } = await admin.from('passkeys').select('credential_id, transports').eq('user_id', user.id);
       if (error) throw error;
       const options = await generateRegistrationOptions({
@@ -96,11 +98,13 @@ Deno.serve(async (request) => {
     if (action === 'register_verify') {
       const user = await authenticatedUser(request);
       if (!user) return json({ ok: false, error: 'AUTH_REQUIRED' }, 401);
+      const { data: developerProfile } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle();
+      if (!developerProfile || !['developer','admin'].includes(String(developerProfile.role))) return json({ ok: false, error: 'DEVELOPER_ACCOUNT_REQUIRED' }, 403);
       const challenge = await getChallenge({ userId: user.id, kind: 'registration' });
       const verification = await verifyRegistrationResponse({
         response: body.response,
         expectedChallenge: challenge.challenge,
-        expectedOrigin: EXPECTED_ORIGIN,
+        expectedOrigin: EXPECTED_ORIGINS,
         expectedRPID: RP_ID,
         requireUserVerification: true,
       });
@@ -125,8 +129,8 @@ Deno.serve(async (request) => {
     if (action === 'auth_options') {
       const email = String(body.email || '').trim().toLowerCase();
       if (!email) return json({ ok: false, error: 'EMAIL_REQUIRED' }, 400);
-      const { data: profile } = await admin.from('profiles').select('id,email').eq('email', email).maybeSingle();
-      if (!profile) return json({ ok: false, error: 'PASSKEY_NOT_AVAILABLE' }, 404);
+      const { data: profile } = await admin.from('profiles').select('id,email,role').eq('email', email).maybeSingle();
+      if (!profile || !['developer','admin'].includes(String(profile.role))) return json({ ok: false, error: 'PASSKEY_NOT_AVAILABLE' }, 404);
       const { data: credentials, error } = await admin.from('passkeys').select('credential_id,transports').eq('user_id', profile.id);
       if (error) throw error;
       if (!credentials?.length) return json({ ok: false, error: 'PASSKEY_NOT_AVAILABLE' }, 404);
@@ -142,8 +146,8 @@ Deno.serve(async (request) => {
     if (action === 'auth_verify') {
       const email = String(body.email || '').trim().toLowerCase();
       if (!email) return json({ ok: false, error: 'EMAIL_REQUIRED' }, 400);
-      const { data: profile } = await admin.from('profiles').select('id,email').eq('email', email).maybeSingle();
-      if (!profile?.email) return json({ ok: false, error: 'PASSKEY_NOT_AVAILABLE' }, 404);
+      const { data: profile } = await admin.from('profiles').select('id,email,role').eq('email', email).maybeSingle();
+      if (!profile?.email || !['developer','admin'].includes(String(profile.role))) return json({ ok: false, error: 'PASSKEY_NOT_AVAILABLE' }, 404);
       const challenge = await getChallenge({ userId: profile.id, email, kind: 'authentication' });
       const credentialId = String(body.response?.id || '');
       const { data: stored } = await admin.from('passkeys').select('*').eq('user_id', profile.id).eq('credential_id', credentialId).maybeSingle();
@@ -151,7 +155,7 @@ Deno.serve(async (request) => {
       const verification = await verifyAuthenticationResponse({
         response: body.response,
         expectedChallenge: challenge.challenge,
-        expectedOrigin: EXPECTED_ORIGIN,
+        expectedOrigin: EXPECTED_ORIGINS,
         expectedRPID: RP_ID,
         credential: {
           id: stored.credential_id,

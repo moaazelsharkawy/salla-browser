@@ -4,9 +4,44 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0a1320" />
-    <meta name="description" content="Salla Browser - متصفح تطبيقات منظومة Salla" />
-    <link rel="icon" href="/icons/icon-192.png" />
-    <title>Salla Browser</title>
+    <meta name="color-scheme" content="dark light" />
+    <meta name="application-name" content="Salla Browser" />
+    <meta name="apple-mobile-web-app-title" content="Salla Browser" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="description" content="اكتشف تطبيقات منظومة Salla المعتمدة، فلتر حسب الدولة، ثبت تطبيقاتك المفضلة وابحث على الويب من تجربة سريعة وخفيفة." />
+    <meta name="keywords" content="Salla Browser,Salla Apps,تطبيقات سلة,متصفح سلة,Web3,Pi Network,Salla Stars,SallaNet" />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <link rel="canonical" href="https://browser.salla-shop.com/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Salla Browser" />
+    <meta property="og:title" content="Salla Browser | متصفح تطبيقات Salla وWeb3" />
+    <meta property="og:description" content="دليل تطبيقات منظومة Salla المعتمدة مع فلاتر حسب الدولة وتثبيت محلي وبحث ويب مباشر." />
+    <meta property="og:url" content="https://browser.salla-shop.com/" />
+    <meta property="og:image" content="https://browser.salla-shop.com/og/salla-browser-og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="ar_AR" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Salla Browser | Salla Apps & Web3" />
+    <meta name="twitter:description" content="Discover approved Salla ecosystem apps, filter by country, pin favorites, and search the web." />
+    <meta name="twitter:image" content="https://browser.salla-shop.com/og/salla-browser-og.png" />
+
+    <link rel="icon" href="/icons/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <title>Salla Browser | متصفح تطبيقات Salla وWeb3</title>
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Salla Browser","url":"https://browser.salla-shop.com/","inLanguage":["ar","en"],"potentialAction":{"@type":"SearchAction","target":"https://browser.salla-shop.com/?q={search_term_string}","query-input":"required name=search_term_string"}},{"@type":"WebApplication","name":"Salla Browser","url":"https://browser.salla-shop.com/","applicationCategory":"BrowserApplication","operatingSystem":"Any","description":"متصفح تطبيقات منظومة Salla وWeb3","image":"https://browser.salla-shop.com/og/salla-browser-og.png","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}
+    </script>
     <script>
       (() => {
         try {
@@ -14,9 +49,7 @@
           if (theme !== 'light') document.documentElement.classList.add('dark');
           const meta = document.querySelector('meta[name="theme-color"]');
           if (meta) meta.setAttribute('content', theme === 'light' ? '#f6f7fb' : '#0a1320');
-        } catch (_) {
-          document.documentElement.classList.add('dark');
-        }
+        } catch (_) { document.documentElement.classList.add('dark'); }
       })();
     </script>
   </head>
