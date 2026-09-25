@@ -74,6 +74,16 @@ Deno.serve(async (request) => {
     const body = await request.json().catch(() => ({}));
     const action = String(body?.action || '');
 
+    if (action === 'status') {
+      const user = await authenticatedUser(request);
+      if (!user) return json({ ok: false, error: 'AUTH_REQUIRED' }, 401);
+      const { data: developerProfile } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle();
+      if (!developerProfile || !['developer','admin'].includes(String(developerProfile.role))) return json({ ok: false, error: 'DEVELOPER_ACCOUNT_REQUIRED' }, 403);
+      const { count, error } = await admin.from('passkeys').select('id', { count: 'exact', head: true }).eq('user_id', user.id);
+      if (error) throw error;
+      return json({ ok: true, has_passkey: Number(count || 0) > 0, count: Number(count || 0) });
+    }
+
     if (action === 'register_options') {
       const user = await authenticatedUser(request);
       if (!user?.email) return json({ ok: false, error: 'AUTH_REQUIRED' }, 401);

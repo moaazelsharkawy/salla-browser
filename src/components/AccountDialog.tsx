@@ -1,5 +1,6 @@
 import { Bookmark, ClipboardList, Download, Languages, LayoutDashboard, LogIn, LogOut, MapPin, Moon, Send, ShieldCheck, Sun, UserPlus, UserRound, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCountry } from '../contexts/CountryContext';
@@ -16,11 +17,28 @@ export function AccountDialog({ open, onClose }: { open: boolean; onClose: () =>
   const { country, setCountry } = useCountry();
   const { canInstall, install } = usePwaInstall();
   const [countryOpen, setCountryOpen] = useState(false);
-  if (!open) return null;
   const ar = language === 'ar';
   const selectedCountry = getCountry(country);
 
-  return <>
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) setCountryOpen(false);
+  }, [open]);
+
+  if (!open || typeof document === 'undefined') return null;
+
+  const modal = <>
     <div className="account-overlay" role="presentation" onMouseDown={onClose}>
       <section className="account-dialog" role="dialog" aria-modal="true" aria-label={ar ? 'حسابي' : 'My account'} onMouseDown={(event) => event.stopPropagation()}>
         <div className="account-dialog-head">
@@ -51,7 +69,7 @@ export function AccountDialog({ open, onClose }: { open: boolean; onClose: () =>
             <Link to="/login" onClick={onClose} className="primary-button"><LogIn className="h-4 w-4" />{ar ? 'دخول المطورين' : 'Developer sign in'}</Link>
             <Link to="/register" onClick={onClose} className="secondary-button"><UserPlus className="h-4 w-4" />{ar ? 'إنشاء حساب مطور' : 'Create developer account'}</Link>
           </div>}
-          {user && !isDeveloper && <p className="form-message mt-3">{ar ? 'هذا الحساب قديم وغير مفعّل كمطور. تواصل مع الإدارة إذا كنت تحتاج إدراج تطبيق.' : 'This legacy account is not enabled as a developer. Contact admin if you need app submission access.'}</p>}
+          {user && !isDeveloper && <p className="form-message mt-3">{ar ? 'هذا الحساب قديم وغير مفعّل كمطور. استخدم دخول المطورين لتفعيل صلاحيات الإدراج.' : 'This legacy account is not enabled as a developer. Use developer sign in to enable listing access.'}</p>}
         </div>
 
         {profile?.role === 'developer' && <div className="developer-badge mt-3"><ShieldCheck className="h-4 w-4" />{ar ? 'حساب مطور' : 'Developer account'}</div>}
@@ -60,4 +78,6 @@ export function AccountDialog({ open, onClose }: { open: boolean; onClose: () =>
     </div>
     <CountryPickerModal open={countryOpen} value={country} onChange={setCountry} onClose={() => setCountryOpen(false)} />
   </>;
+
+  return createPortal(modal, document.body);
 }

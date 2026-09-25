@@ -1,5 +1,6 @@
-import { Check, Globe2, Search, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Check, Search, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getCountries, getCountry } from '../lib/countries';
 
@@ -10,7 +11,6 @@ export function CountryPickerButton({ value, onClick, compact = false }: { value
     <button type="button" className={`country-picker-button ${compact ? 'is-compact' : ''}`} onClick={onClick}>
       <span className="country-picker-flag" aria-hidden="true">{country.flag}</span>
       <span className="truncate">{language === 'ar' ? country.ar : country.en}</span>
-      <Globe2 className="h-4 w-4 shrink-0" />
     </button>
   );
 }
@@ -25,9 +25,16 @@ export function CountryPickerModal({ open, value, onChange, onClose }: { open: b
     return countries.filter((item) => `${item.ar} ${item.en} ${item.code}`.toLocaleLowerCase(language === 'ar' ? 'ar' : 'en').includes(needle));
   }, [countries, language, query]);
 
-  if (!open) return null;
+  useEffect(() => {
+    if (!open) { setQuery(''); return; }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [open]);
+  if (!open || typeof document === 'undefined') return null;
   const ar = language === 'ar';
-  return (
+
+  return createPortal(
     <div className="country-overlay" onMouseDown={onClose} role="presentation">
       <section className="country-dialog" role="dialog" aria-modal="true" aria-label={ar ? 'اختيار الدولة' : 'Choose country'} onMouseDown={(event) => event.stopPropagation()}>
         <div className="country-dialog-head">
@@ -56,6 +63,7 @@ export function CountryPickerModal({ open, value, onChange, onClose }: { open: b
           {!filtered.length && <div className="country-empty">{ar ? 'لا توجد دولة مطابقة.' : 'No matching country.'}</div>}
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

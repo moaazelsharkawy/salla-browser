@@ -1138,3 +1138,124 @@ body { overscroll-behavior-x: none; }
 @media (prefers-reduced-motion: reduce) {
   .intro-logo, .intro-node { animation: none !important; }
 }
+
+/* ===== Salla Browser v006 finishing pass ===== */
+.dark {
+  --app-bg: #09111f;
+  --app-surface: #17243d;
+  --app-surface-2: #1d2a47;
+  --app-surface-3: #121b34;
+  --app-elevated: #1b2845;
+  --app-nav: #13213a;
+  --app-violet: #a081ff;
+  --app-violet-strong: #b89cff;
+  --app-violet-soft: rgba(160, 129, 255, .16);
+}
+
+.dark .hero-panel {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--app-surface) 88%, var(--app-violet) 12%), var(--app-surface));
+}
+.dark .app-card,
+.dark .content-panel,
+.dark .mini-feature,
+.dark .info-tile,
+.dark .empty-panel {
+  background: color-mix(in srgb, var(--app-surface) 92%, var(--app-violet) 8%);
+}
+.dark .soft-icon,
+.dark .eyebrow-badge,
+.dark .category-chip-active,
+.dark .bottom-nav-active {
+  background: color-mix(in srgb, var(--app-accent-soft) 58%, var(--app-violet-soft) 42%);
+}
+.dark .decor-orbit { background: rgba(160,129,255,.08); }
+.dark .hero-orbit-b { background: rgba(34,211,238,.055); }
+
+/* Render account and country windows from document.body so sticky headers can never reposition them. */
+.account-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  z-index: 1000 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: clamp(.75rem, 3vw, 1.25rem) !important;
+  overflow: hidden !important;
+  background: rgba(2, 7, 18, .66) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(.9) !important;
+  backdrop-filter: blur(10px) saturate(.9) !important;
+}
+.account-dialog {
+  position: relative !important;
+  inset: auto !important;
+  width: min(100%, 470px) !important;
+  max-width: 470px !important;
+  max-height: min(84dvh, 740px) !important;
+  margin: 0 !important;
+  transform: none !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  border-radius: 1.75rem !important;
+  padding: 1.05rem !important;
+  background: color-mix(in srgb, var(--app-elevated) 92%, var(--app-violet) 8%) !important;
+  box-shadow: 0 24px 70px rgba(0,0,0,.32) !important;
+}
+.account-dialog-head {
+  position: static !important;
+  inset: auto !important;
+  margin: 0 !important;
+  padding: 0 0 .75rem !important;
+  background: transparent !important;
+}
+
+.country-overlay { z-index: 1100 !important; }
+.country-picker-button { gap: .45rem; }
+.country-picker-button svg { display: none !important; }
+.country-picker-flag { width: 1.25rem; text-align: center; }
+
+/* Compact directory headings without changing other section titles. */
+.directory-title-compact { font-size: 1rem !important; line-height: 1.35 !important; }
+
+.google-button {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .65rem;
+  border: 0;
+  border-radius: 14px;
+  padding: .7rem 1rem;
+  color: var(--app-text);
+  background: color-mix(in srgb, var(--app-surface-2) 88%, var(--app-violet-soft) 12%);
+  font-size: .78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.google-button:hover { background: color-mix(in srgb, var(--app-surface-3) 84%, var(--app-violet-soft) 16%); }
+.google-button:disabled { opacity: .5; cursor: not-allowed; }
+.google-mark {
+  font-family: Arial, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1;
+  background: conic-gradient(from -35deg, #4285f4 0 25%, #34a853 0 43%, #fbbc05 0 68%, #ea4335 0 82%, #4285f4 0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: 1rem 0;
+  color: var(--app-muted-2);
+  font-size: .68rem;
+  font-weight: 800;
+}
+.auth-divider::before,.auth-divider::after { content: ''; height: 1px; flex: 1; background: color-mix(in srgb, var(--app-surface-2) 88%, var(--app-violet) 12%); }
+
+@media (max-width: 640px) {
+  .account-overlay { padding: .75rem !important; }
+  .account-dialog { width: min(100%, 430px) !important; max-height: 82dvh !important; border-radius: 1.55rem !important; }
+}

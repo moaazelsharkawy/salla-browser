@@ -1,18 +1,18 @@
 {
-  "version": "2026.09.25.005",
+  "version": "2026.09.25.006",
   "name": "Salla Browser",
   "notes_ar": [
-    "تحسين نافذة الحساب واختيار الدولة",
-    "توضيح أن الحساب مخصص للمطورين",
-    "هوية بصرية وأيقونات جديدة",
-    "تحسينات SEO شاملة وربط الدومين الرسمي",
-    "تحديث صلاحيات الباك اند وحسابات المطورين"
+    "إصلاح نهائي لنافذة حسابي لتظهر في منتصف الشاشة مع تشويش الخلفية",
+    "تبسيط اختيار الدولة وإزالة الأيقونة المكررة",
+    "تقليل حجم عنوان استكشف التطبيقات",
+    "تعزيز اللمسات الأرجوانية في الوضع الداكن",
+    "إضافة دخول وإنشاء حساب المطور عبر Google مع عرض تفعيل Passkey بعد التسجيل"
   ],
   "notes_en": [
-    "Centered account dialog and searchable country picker",
-    "Developer-only account positioning",
-    "New visual identity and icon set",
-    "Comprehensive SEO for the official domain",
-    "Backend role and submission policy updates"
+    "Final centered account dialog fix with blurred backdrop",
+    "Simplified country picker trigger without duplicate icon",
+    "Smaller Explore apps heading",
+    "Stronger purple accents in dark mode",
+    "Google developer auth with passkey setup after registration"
   ]
 }

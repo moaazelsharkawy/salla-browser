@@ -30,3 +30,9 @@ export async function signInWithPasskey(email: string) {
   if (error) throw error;
   return true;
 }
+
+
+export async function getPasskeyStatus() {
+  const result = await invoke({ action: 'status' }, true);
+  return { hasPasskey: Boolean(result.has_passkey), count: Number(result.count || 0) };
+}
