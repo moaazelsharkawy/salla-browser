@@ -3,6 +3,7 @@ export type AppStatus = 'draft' | 'published' | 'suspended';
 export type HealthStatus = 'online' | 'maintenance' | 'new' | 'updated' | 'offline';
 export type EmbedMode = 'iframe' | 'external';
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'changes_requested';
+export type SubmissionType = 'new' | 'update';
 export type UserRole = 'user' | 'developer' | 'admin';
 
 export interface Profile {
@@ -32,6 +33,7 @@ export interface DirectoryApp {
   id: string;
   slug: string;
   name: string;
+  version: string;
   short_description_ar: string;
   short_description_en: string;
   description_ar: string;
@@ -59,7 +61,10 @@ export interface DirectoryApp {
 export interface AppSubmission {
   id: string;
   user_id: string;
+  app_id: string | null;
+  submission_type: SubmissionType;
   app_name: string;
+  app_version: string;
   website_url: string;
   icon_url: string | null;
   description_ar: string;
@@ -74,6 +79,7 @@ export interface AppSubmission {
   reviewed_by: string | null;
   reviewed_at: string | null;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface Announcement {

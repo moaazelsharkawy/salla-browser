@@ -26,7 +26,7 @@ export default function AuthCallback() {
 
     if (!session) {
       setState('error');
-      setMessage(ar ? 'لم يكتمل تسجيل الدخول. أعد المحاولة من صفحة دخول المطورين.' : 'Sign-in did not complete. Please try again from developer sign in.');
+      setMessage(ar ? 'لم يكتمل تسجيل الدخول أعد المحاولة من صفحة دخول المطورين' : 'Sign-in did not complete. Please try again from developer sign in.');
       return;
     }
 
@@ -63,8 +63,8 @@ export default function AuthCallback() {
       const raw = error instanceof Error ? error.message : 'PASSKEY_FAILED';
       setMessage(
         raw.includes('PASSKEY_UNSUPPORTED')
-          ? (ar ? 'هذا الجهاز أو المتصفح لا يدعم Passkey حاليا. يمكنك المتابعة بدونها.' : 'This device or browser does not support passkeys right now. You can continue without it.')
-          : (ar ? 'لم يتم تفعيل البصمة. يمكنك المحاولة مرة أخرى أو المتابعة بدونها.' : 'Passkey setup was not completed. Try again or continue without it.'),
+          ? (ar ? 'هذا الجهاز أو المتصفح لا يدعم Passkey حاليا يمكنك المتابعة بدونها' : 'This device or browser does not support passkeys right now. You can continue without it.')
+          : (ar ? 'لم يتم تفعيل البصمة يمكنك المحاولة مرة أخرى أو المتابعة بدونها' : 'Passkey setup was not completed. Try again or continue without it.'),
       );
     }
   };
@@ -78,14 +78,14 @@ export default function AuthCallback() {
         </div>
 
         <h1 className="mt-5 text-center text-2xl font-black">
-          {state === 'working' ? (ar ? 'جار تجهيز حساب المطور' : 'Setting up your developer account') : state === 'success' ? (ar ? 'تم تفعيل البصمة' : 'Passkey enabled') : state === 'error' ? (ar ? 'تعذر إكمال التسجيل' : 'Setup could not be completed') : (ar ? 'فعّل الدخول بالبصمة' : 'Enable passkey sign-in')}
+          {state === 'working' ? (ar ? 'جار تجهيز حساب المطور' : 'Setting up your developer account') : state === 'success' ? (ar ? 'تم تفعيل البصمة' : 'Passkey enabled') : state === 'error' ? (ar ? 'تعذر إكمال التسجيل' : 'Setup could not be completed') : (ar ? 'فعل الدخول بالبصمة' : 'Enable passkey sign-in')}
         </h1>
 
         <p className="muted-text mt-2 text-center text-xs font-semibold leading-6">
           {state === 'offer_passkey' || state === 'registering'
-            ? (ar ? 'استخدم بصمة الهاتف أو قفل الجهاز للدخول السريع والآمن في المرات القادمة. بيانات البصمة نفسها لا تغادر جهازك.' : 'Use your device biometrics or screen lock for fast, secure sign-in next time. Your biometric data never leaves your device.')
+            ? (ar ? 'استخدم بصمة الهاتف أو قفل الجهاز للدخول السريع والآمن في المرات القادمة بيانات البصمة نفسها لا تغادر جهازك' : 'Use your device biometrics or screen lock for fast, secure sign-in next time. Your biometric data never leaves your device.')
             : state === 'working'
-              ? (ar ? 'ثوان قليلة ونجهز صلاحيات المطور ونفحص دعم Passkey.' : 'This only takes a moment while we prepare developer access and check passkey support.')
+              ? (ar ? 'ثوان قليلة ونجهز صلاحيات المطور ونفحص دعم Passkey' : 'This only takes a moment while we prepare developer access and check passkey support.')
               : ''}
         </p>
 
@@ -96,7 +96,7 @@ export default function AuthCallback() {
           <button className="secondary-button w-full" onClick={() => navigate(next, { replace: true })}><SkipForward className="h-4 w-4" />{ar ? 'المتابعة بدونها الآن' : 'Continue without it for now'}</button>
         </div>}
 
-        {state === 'registering' && <div className="developer-note mt-5"><Fingerprint className="h-5 w-5" /><p>{ar ? 'أكمل نافذة البصمة أو قفل الشاشة التي تظهر من نظام جهازك.' : 'Complete the biometric or screen-lock prompt shown by your device.'}</p></div>}
+        {state === 'registering' && <div className="developer-note mt-5"><Fingerprint className="h-5 w-5" /><p>{ar ? 'أكمل نافذة البصمة أو قفل الشاشة التي تظهر من نظام جهازك' : 'Complete the biometric or screen-lock prompt shown by your device.'}</p></div>}
         {state === 'error' && <button className="primary-button mt-6 w-full" onClick={() => navigate('/login', { replace: true })}>{ar ? 'العودة لتسجيل الدخول' : 'Back to sign in'}</button>}
       </section>
     </div>

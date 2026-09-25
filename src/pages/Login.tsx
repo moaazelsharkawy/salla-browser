@@ -18,7 +18,7 @@ export default function Login() {
   const navigate = useNavigate(); const [params] = useSearchParams();
   const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [showPassword, setShowPassword] = useState(false); const [loading, setLoading] = useState(false); const [message, setMessage] = useState<string | null>(null);
   const next = params.get('next') || '/submit';
-  const authUnavailable = ar ? 'خدمة دخول المطورين غير مفعلة حاليا. حاول لاحقا.' : 'Developer sign-in is not available right now. Please try again later.';
+  const authUnavailable = ar ? 'خدمة دخول المطورين غير مفعلة حاليا حاول لاحقا' : 'Developer sign-in is not available right now. Please try again later.';
 
   const google = async () => {
     if (!isSupabaseConfigured) return setMessage(authUnavailable);
@@ -28,7 +28,7 @@ export default function Login() {
     } catch (error) {
       setLoading(false);
       const raw = error instanceof Error ? error.message : '';
-      setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (raw || (ar ? 'تعذر تسجيل الدخول باستخدام Google.' : 'Google sign-in failed.')));
+      setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (raw || (ar ? 'تعذر تسجيل الدخول باستخدام Google' : 'Google sign-in failed.')));
     }
   };
 
@@ -52,28 +52,28 @@ export default function Login() {
       navigate(next, { replace: true });
     } catch (error) {
       const raw = error instanceof Error ? error.message : '';
-      setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (raw || (ar ? 'تعذر تجهيز حساب المطور.' : 'Developer account setup failed.')));
+      setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (raw || (ar ? 'تعذر تجهيز حساب المطور' : 'Developer account setup failed.')));
     } finally { setLoading(false); }
   };
 
   const passkey = async () => {
     if (!isSupabaseConfigured) return setMessage(authUnavailable);
-    if (!email.trim()) return setMessage(ar ? 'اكتب بريد حساب المطور المرتبط بالبصمة أولا.' : 'Enter your developer email first.');
+    if (!email.trim()) return setMessage(ar ? 'اكتب بريد حساب المطور المرتبط بالبصمة أولا' : 'Enter your developer email first.');
     try { setLoading(true); setMessage(null); await signInWithPasskey(email.trim()); await activateDeveloperAccount(); await refreshProfile(); navigate(next, { replace: true }); }
-    catch (error) { const raw = error instanceof Error ? error.message : ''; setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (raw || (ar ? 'تعذر الدخول بالبصمة.' : 'Passkey sign-in failed.'))); }
+    catch (error) { const raw = error instanceof Error ? error.message : ''; setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (raw || (ar ? 'تعذر الدخول بالبصمة' : 'Passkey sign-in failed.'))); }
     finally { setLoading(false); }
   };
 
   return <div className="auth-page min-h-screen px-4 py-10"><div className="mx-auto max-w-md"><div className="mb-8 flex justify-center"><Brand /></div><section className="content-panel p-5 sm:p-7">
     <div className="soft-icon auth-hero-icon mx-auto flex h-20 w-20 items-center justify-center rounded-[1.65rem]"><ShieldCheck className="h-9 w-9" /></div>
     <h1 className="mt-5 text-center text-2xl font-black">{ar ? 'دخول المطورين' : 'Developer sign in'}</h1>
-    <p className="muted-text mt-2 text-center text-xs font-semibold leading-6">{ar ? 'التصفح وتثبيت التطبيقات لا يحتاجان حسابا. حساب المطور مطلوب فقط لإدراج تطبيق أو متابعة مراجعته.' : 'Browsing and pinning apps do not require an account. Developer access is only for submitting or tracking app listings.'}</p>
+    <p className="muted-text mt-2 text-center text-xs font-semibold leading-6">{ar ? 'التصفح وتثبيت التطبيقات لا يحتاجان حسابا حساب المطور مطلوب فقط لإدراج تطبيق أو متابعة مراجعته' : 'Browsing and pinning apps do not require an account. Developer access is only for submitting or tracking app listings.'}</p>
 
     <button disabled={loading} className="google-button mt-6 w-full" onClick={() => void google()}><GoogleMark />{ar ? 'المتابعة باستخدام Google' : 'Continue with Google'}</button>
     <div className="auth-divider"><span>{ar ? 'أو' : 'or'}</span></div>
 
     <div className="space-y-3"><label className="field-shell"><Mail className="h-4 w-4" /><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={ar ? 'بريد المطور' : 'Developer email'} dir="ltr" /></label><label className="field-shell password-field"><KeyRound className="h-4 w-4" /><input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={ar ? 'كلمة المرور' : 'Password'} dir="ltr" /><button type="button" className="password-toggle" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? (ar ? 'إخفاء كلمة المرور' : 'Hide password') : (ar ? 'إظهار كلمة المرور' : 'Show password')}>{showPassword ? <EyeOff className="h-[18px] w-[18px]" /> : <Eye className="h-[18px] w-[18px]" />}</button></label>{message && <div className="form-message">{message}</div>}<button disabled={loading} className="primary-button w-full" onClick={() => void login()}><LogIn className="h-4 w-4" />{loading ? '...' : (ar ? 'دخول المطور' : 'Developer sign in')}</button><button disabled={loading} className="secondary-button w-full" onClick={() => void passkey()}><Fingerprint className="h-5 w-5 text-cyan-300" />{ar ? 'الدخول بالبصمة أو Passkey' : 'Sign in with passkey'}</button></div>
-    <p className="muted-text mt-6 text-center text-xs font-semibold">{ar ? 'تريد إدراج تطبيق لأول مرة؟' : 'Submitting an app for the first time?'} <Link to="/register" className="font-black text-cyan-300">{ar ? 'إنشاء حساب مطور' : 'Create developer account'}</Link></p>
+    <p className="muted-text mt-6 text-center text-xs font-semibold">{ar ? 'تريد إدراج تطبيق لأول مرة' : 'Submitting an app for the first time?'} <Link to="/register" className="font-black text-cyan-300">{ar ? 'إنشاء حساب مطور' : 'Create developer account'}</Link></p>
     <Link to="/" className="mt-4 block text-center text-xs font-black text-violet-300">{ar ? 'العودة للتصفح بدون حساب' : 'Continue browsing without an account'}</Link>
   </section></div></div>;
 }

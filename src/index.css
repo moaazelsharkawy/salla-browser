@@ -350,6 +350,9 @@ html:not(.dark) .decor-orbit { background:rgba(21,159,220,.055); }
 }
 .field-block select,.field-shell select { cursor:pointer; }
 .form-message { border-radius:14px; padding:.8rem 1rem; color:var(--app-cyan); background:var(--app-accent-soft); font-size:.72rem; font-weight:900; line-height:1.7; }
+.submission-form-grid .field-block > span { margin-bottom:.6rem; }
+.submission-form-grid .field-block input,.submission-form-grid .field-block select { min-height:52px; }
+.submission-form-grid .field-block textarea { min-height:132px; line-height:1.8; }
 .toggle-tile { min-height:42px; display:flex; align-items:center; justify-content:center; gap:.4rem; border-radius:12px; color:var(--app-muted); background:var(--app-surface-2); }
 
 .account-overlay {

@@ -45,7 +45,7 @@ export default function BrowserPage() {
           <h1 className="mt-4 text-xl font-black">{language === 'ar' ? 'التصفح المضمن مخصص لتطبيقات الدليل' : 'Embedded browsing is reserved for directory apps'}</h1>
           <p className="muted-text mt-2 text-sm font-bold leading-7">
             {language === 'ar'
-              ? 'بحث الويب وروابط المواقع العامة تفتح الآن مباشرة في المتصفح الخارجي لتجنب الصفحات التي تمنع التضمين.'
+              ? 'بحث الويب وروابط المواقع العامة تفتح الآن مباشرة في المتصفح الخارجي لتجنب الصفحات التي تمنع التضمين'
               : 'Web search and general links now open directly in your browser to avoid sites that block embedding.'}
           </p>
           <Link to="/explore" className="primary-button mt-5 inline-flex">
@@ -63,7 +63,7 @@ export default function BrowserPage() {
           <ExternalLink className="mx-auto h-9 w-9 text-cyan-300" />
           <h1 className="mt-4 text-xl font-black">{language === 'ar' ? 'هذا التطبيق يفتح مباشرة' : 'This app opens directly'}</h1>
           <p className="muted-text mt-2 text-sm font-bold leading-7">
-            {language === 'ar' ? 'تم ضبطه للفتح خارج الإطار المضمن لضمان أفضل توافق.' : 'It is configured to open outside the embedded frame for best compatibility.'}
+            {language === 'ar' ? 'تم ضبطه للفتح خارج الإطار المضمن لضمان أفضل توافق' : 'It is configured to open outside the embedded frame for best compatibility.'}
           </p>
           <a href={app.website_url} target="_blank" rel="noreferrer" className="primary-button mt-5 inline-flex">
             <Globe2 className="h-4 w-4" />

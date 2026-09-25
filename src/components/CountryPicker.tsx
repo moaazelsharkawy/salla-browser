@@ -46,7 +46,7 @@ export function CountryPickerModal({ open, value, onChange, onClose }: { open: b
         </div>
         <div className="country-search mt-4">
           <Search className="h-4 w-4 shrink-0" />
-          <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={ar ? 'ابحث عن دولة...' : 'Search countries...'} />
+          <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={ar ? 'ابحث عن دولة' : 'Search countries...'} />
         </div>
         <div className="country-list mt-3">
           {filtered.map((item) => {
@@ -60,7 +60,7 @@ export function CountryPickerModal({ open, value, onChange, onClose }: { open: b
               </button>
             );
           })}
-          {!filtered.length && <div className="country-empty">{ar ? 'لا توجد دولة مطابقة.' : 'No matching country.'}</div>}
+          {!filtered.length && <div className="country-empty">{ar ? 'لا توجد دولة مطابقة' : 'No matching country.'}</div>}
         </div>
       </section>
     </div>,
