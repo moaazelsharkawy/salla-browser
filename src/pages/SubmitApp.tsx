@@ -52,19 +52,23 @@ export default function SubmitApp() {
     }
     setLoadingApp(true);
     setMessage(null);
-    supabase
-      .from('apps')
-      .select('*')
-      .eq('id', appId)
-      .eq('created_by', user.id)
-      .maybeSingle()
-      .then(({ data, error }) => {
+
+    void (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('apps')
+          .select('*')
+          .eq('id', appId)
+          .eq('created_by', user.id)
+          .maybeSingle();
+
         const app = data as DirectoryApp | null;
         if (error || !app) {
           setSourceApp(null);
           setMessage(language === 'ar' ? 'تعذر العثور على التطبيق أو لا تملك صلاحية تعديله' : 'App not found or you do not have permission to edit it');
           return;
         }
+
         setSourceApp(app);
         setForm({
           app_name: app.name,
@@ -79,8 +83,10 @@ export default function SubmitApp() {
           contact_email: user.email || app.developer_name || '',
           notes: ''
         });
-      })
-      .finally(() => setLoadingApp(false));
+      } finally {
+        setLoadingApp(false);
+      }
+    })();
   }, [appId, language, user]);
 
   const update = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }));
