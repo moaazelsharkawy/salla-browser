@@ -1,4 +1,4 @@
-import { Bookmark, Clock3, ClipboardList, Download, Languages, LayoutDashboard, LogIn, LogOut, MapPin, Moon, Send, ShieldCheck, Sun, UserPlus, UserRound, X } from 'lucide-react';
+import { Activity, Bookmark, Clock3, ClipboardList, Download, Flag, History, Languages, LayoutDashboard, LogIn, LogOut, MapPin, Moon, Send, ShieldCheck, Sun, UserPlus, UserRound, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
@@ -46,6 +46,8 @@ export function AccountDialog({ open, onClose }: { open: boolean; onClose: () =>
         <div className="mt-4 space-y-1.5">
           <Link to="/favorites" onClick={onClose} className="menu-row"><Bookmark className="h-5 w-5 text-cyan-300" /><span>{ar ? 'التطبيقات المثبتة' : 'Pinned apps'}</span></Link>
           <Link to="/updates" onClick={onClose} className="menu-row"><Clock3 className="h-5 w-5 text-cyan-300" /><span>{ar ? 'آخر تحديثات التطبيقات' : 'App updates'}</span></Link>
+          <Link to="/history" onClick={onClose} className="menu-row"><History className="h-5 w-5 text-cyan-300" /><span>{ar ? 'سجل التصفح' : 'Browsing history'}</span></Link>
+          <Link to="/status" onClick={onClose} className="menu-row"><Activity className="h-5 w-5 text-cyan-300" /><span>{ar ? 'حالة التطبيقات' : 'App status'}</span></Link>
           <button className="menu-row w-full" onClick={() => setCountryOpen(true)}><MapPin className="h-5 w-5 text-cyan-300" /><span className="flex-1 text-start">{ar ? 'الدولة' : 'Country'}</span><span className="menu-value">{selectedCountry.flag} {ar ? selectedCountry.ar : selectedCountry.en}</span></button>
           <button className="menu-row w-full" onClick={toggleLanguage}><Languages className="h-5 w-5 text-cyan-300" /><span className="flex-1 text-start">{ar ? 'اللغة' : 'Language'}</span><span className="menu-value">{ar ? 'English' : 'العربية'}</span></button>
           <button className="menu-row w-full" onClick={toggleTheme}>{theme === 'dark' ? <Sun className="h-5 w-5 text-violet-300" /> : <Moon className="h-5 w-5 text-violet-300" />}<span className="flex-1 text-start">{ar ? 'المظهر' : 'Appearance'}</span><span className="menu-value">{ar ? (theme === 'dark' ? 'فاتح' : 'داكن') : theme === 'dark' ? 'Light' : 'Dark'}</span></button>
@@ -60,6 +62,7 @@ export function AccountDialog({ open, onClose }: { open: boolean; onClose: () =>
             <Link to="/my-submissions" onClick={onClose} className="menu-row"><ClipboardList className="h-5 w-5 text-violet-300" /><span>{ar ? 'تطبيقاتي وطلبات المراجعة' : 'My apps and reviews'}</span></Link>
             <Link to="/submit" onClick={onClose} className="menu-row"><Send className="h-5 w-5 text-violet-300" /><span>{ar ? 'إدراج تطبيق جديد' : 'Submit an app'}</span></Link>
             {isAdmin && <Link to="/admin" onClick={onClose} className="menu-row"><LayoutDashboard className="h-5 w-5 text-violet-300" /><span>{ar ? 'لوحة الإدارة' : 'Admin dashboard'}</span></Link>}
+            {isAdmin && <Link to="/admin/reports" onClick={onClose} className="menu-row"><Flag className="h-5 w-5 text-violet-300" /><span>{ar ? 'بلاغات التطبيقات' : 'App reports'}</span></Link>}
           </div> : <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <Link to="/login" onClick={onClose} className="primary-button"><LogIn className="h-4 w-4" />{ar ? 'دخول المطورين' : 'Developer sign in'}</Link>
             <Link to="/register" onClick={onClose} className="secondary-button"><UserPlus className="h-4 w-4" />{ar ? 'إنشاء حساب مطور' : 'Create developer account'}</Link>

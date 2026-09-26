@@ -9,6 +9,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ensureSupabaseConfigured } from './lib/supabase';
 import './index.css';
+import './v018.css';
 
 registerSW({ immediate: true });
 

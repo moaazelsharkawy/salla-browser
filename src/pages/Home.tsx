@@ -2,6 +2,7 @@ import { BadgeCheck, Clock3, Globe2, History, LayoutGrid, Megaphone, Rocket, Sea
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AppCard } from '../components/AppCard';
+import { HomeExperience } from '../components/HomeExperience';
 import { CategoryStrip } from '../components/CategoryStrip';
 import { CountryPickerButton, CountryPickerModal } from '../components/CountryPicker';
 import { SearchBar } from '../components/SearchBar';
@@ -56,6 +57,8 @@ export default function Home() {
     </section>
 
     <section className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">{[[ShieldCheck,language==='ar'?'مراجعة قبل النشر':'Reviewed first',language==='ar'?'تطبيقات موثوقة وواضحة':'Reviewed and clear'],[SearchCheck,language==='ar'?'بحث سريع':'Fast search',language==='ar'?'من أي صفحة':'From any page'],[Globe2,language==='ar'?'حسب الدولة':'By country',language==='ar'?'ما يناسب منطقتك':'Relevant to your region'],[Rocket,language==='ar'?'خفيف وسريع':'Light and fast',language==='ar'?'بدون مؤثرات ثقيلة':'No heavy effects']].map(([Icon,title,text])=>{const I=Icon as typeof ShieldCheck;return <div key={String(title)} className="mini-feature"><div className="soft-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"><I className="h-5 w-5" /></div><div className="min-w-0"><p className="text-xs font-black sm:text-sm">{String(title)}</p><p className="muted-text mt-1 text-[10px] font-bold sm:text-xs">{String(text)}</p></div></div>;})}</section>
+
+    <HomeExperience apps={apps} quiet={quietMode} />
 
     {!quietMode && recentApps.length > 0 && <section className="mt-8"><SectionTitle icon={History} title={language==='ar'?'متابعة التصفح':'Continue browsing'} description={language==='ar'?'آخر التطبيقات التي فتحتها على هذا الجهاز':'Your recently opened apps on this device'} action={<button className="secondary-button compact-action" onClick={() => { clearRecentApps(); setRecentIds([]); }}><Trash2 />{language==='ar'?'مسح':'Clear'}</button>} /><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{recentApps.slice(0,3).map(app=><AppCard key={app.id} app={app} favorite={favoriteIds.has(app.id)} onFavorite={()=>void toggleFavorite(app.id)} />)}</div></section>}
 

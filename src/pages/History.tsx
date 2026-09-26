@@ -1,0 +1,8 @@
+import { Clock3, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { SectionTitle } from '../components/SectionTitle';
+import { useLanguage } from '../contexts/LanguageContext';
+import { clearRecentApps, getRecentApps, type RecentLocalApp } from '../lib/recent';
+
+export default function History(){const{language}=useLanguage();const ar=language==='ar';const[items,setItems]=useState<RecentLocalApp[]>(()=>getRecentApps());useEffect(()=>{const f=()=>setItems(getRecentApps());window.addEventListener('salla-recent-updated',f);return()=>window.removeEventListener('salla-recent-updated',f)},[]);return <div className="page-container py-7 sm:py-10"><SectionTitle icon={Clock3} title={ar?'سجل التصفح':'Browsing history'} description={ar?'محفوظ على هذا الجهاز ويمكن مسحه في أي وقت':'Stored on this device and removable at any time'} action={items.length?<button className="secondary-button compact-action" onClick={()=>{clearRecentApps();setItems([])}}><Trash2/>{ar?'مسح الكل':'Clear all'}</button>:null}/>{items.length?<div className="history-list">{items.map(item=><Link key={item.id} to={`/browse?app=${encodeURIComponent(item.slug)}`} className="history-row"><div className="history-icon">{item.icon_url?<img src={item.icon_url} alt=""/>:<Clock3/>}</div><div className="min-w-0 flex-1"><strong>{item.name}</strong><span>{new Intl.DateTimeFormat(ar?'ar-EG':'en-US',{dateStyle:'medium',timeStyle:'short'}).format(new Date(item.last_opened_at))}</span></div><span className="pill">×{item.open_count||1}</span></Link>)}</div>:<div className="empty-panel">{ar?'لم تفتح أي تطبيق بعد':'No browsing history yet'}</div>}</div>}

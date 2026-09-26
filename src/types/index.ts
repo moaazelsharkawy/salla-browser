@@ -1,7 +1,7 @@
 export type Language = 'ar' | 'en';
 export type AppStatus = 'draft' | 'published' | 'suspended';
 export type HealthStatus = 'online' | 'maintenance' | 'new' | 'updated' | 'offline';
-export type EmbedMode = 'iframe' | 'external';
+export type EmbedMode = 'iframe' | 'limited' | 'external';
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'changes_requested';
 export type SubmissionType = 'new' | 'update';
 export type ListingPaymentStatus = 'not_required' | 'awaiting_payment' | 'paid' | 'refunded' | 'payment_failed';
@@ -16,6 +16,7 @@ export interface DirectoryApp {
   icon_url:string|null; website_url:string; privacy_url:string|null; developer_name:string|null; category_id:string|null; supported_countries:string[];
   status:AppStatus; suspension_reason:string|null; verified:boolean; featured:boolean; embed_mode:EmbedMode; health_status:HealthStatus; installable:boolean;
   sort_order:number; created_by:string|null; published_at:string|null; created_at:string; updated_at:string; boost_until?:string|null; home_ad_until?:string|null; category?:Category|null;
+  health_probe_status?:'unknown'|'online'|'offline'; health_checked_at?:string|null; health_latency_ms?:number|null; health_last_http_status?:number|null;
 }
 export interface AppSubmission {
   id:string; user_id:string; app_id:string|null; submission_type:SubmissionType; app_name:string; app_version:string; website_url:string; icon_url:string|null;
