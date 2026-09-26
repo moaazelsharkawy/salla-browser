@@ -1,7 +1,7 @@
 import {
   AppWindow, Blocks, BriefcaseBusiness, Check, CircleDollarSign, FolderKanban, Gamepad2, Gauge,
   Globe2, Landmark, LayoutGrid, MessageCircle, Package, Save, Settings2, ShieldCheck, ShoppingBag,
-  Smartphone, Sparkles, Store, Ban, Trash2, UserCog, WalletCards, Wrench, X
+  Smartphone, Flame, Store, Ban, Trash2, UserCog, WalletCards, Wrench, X
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -19,7 +19,7 @@ const categoryIcons = [
   ['store', Store], ['blocks', Blocks], ['shopping-bag', ShoppingBag], ['wallet', WalletCards],
   ['finance', CircleDollarSign], ['business', BriefcaseBusiness], ['social', MessageCircle], ['games', Gamepad2],
   ['tools', Wrench], ['apps', LayoutGrid], ['mobile', Smartphone], ['web', Globe2], ['services', Package],
-  ['bank', Landmark], ['featured', Sparkles]
+  ['bank', Landmark], ['featured', Flame]
 ] as const;
 
 const categoryIconLabels: Record<string, { ar: string; en: string }> = {
