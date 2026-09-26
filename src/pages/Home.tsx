@@ -1,4 +1,4 @@
-import { BadgeCheck, Download, Globe2, LayoutGrid, Rocket, SearchCheck, Send, ShieldCheck } from 'lucide-react';
+import { BadgeCheck, Download, Globe2, LayoutGrid, Megaphone, Rocket, SearchCheck, Send, ShieldCheck } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AppCard } from '../components/AppCard';
@@ -15,7 +15,7 @@ import { usePwaInstall } from '../hooks/usePwaInstall';
 export default function Home() {
   const { language } = useLanguage();
   const { country, setCountry } = useCountry();
-  const { apps, categories, featured, loading } = useDirectory();
+  const { apps, categories, featured, homeAds, loading } = useDirectory();
   const { favoriteIds, toggleFavorite } = useFavorites();
   const { canInstall, install } = usePwaInstall();
   const [params] = useSearchParams();
@@ -50,6 +50,8 @@ export default function Home() {
     <section className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
       {[[ShieldCheck,language==='ar'?'مراجعة قبل النشر':'Reviewed first',language==='ar'?'كل تطبيق يمر بالمراجعة':'Every app is reviewed'],[SearchCheck,language==='ar'?'بحث أسرع':'Faster search',language==='ar'?'الدليل أولا ثم الويب':'Directory first, then web'],[Globe2,language==='ar'?'حسب الدولة':'By country',language==='ar'?'تطبيقات مناسبة لدولتك':'Apps relevant to your country'],[Rocket,language==='ar'?'خفيف وقابل للتثبيت':'Light & installable',language==='ar'?'PWA سريع بدون مؤثرات ثقيلة':'Fast PWA without heavy effects']].map(([Icon,title,text])=>{const I=Icon as typeof ShieldCheck;return <div key={String(title)} className="mini-feature"><div className="soft-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"><I className="h-5 w-5" /></div><div className="min-w-0"><p className="text-xs font-black sm:text-sm">{String(title)}</p><p className="muted-text mt-1 text-[10px] font-bold sm:text-xs">{String(text)}</p></div></div>;})}
     </section>
+
+    {homeAds.length>0 && !query && category==='all' && <section className="mt-9"><SectionTitle icon={Megaphone} title={language==='ar'?'إعلانات مميزة':'Featured ads'} description={language==='ar'?'مساحات ترويجية مدفوعة تظهر بوضوح للمستخدم':'Paid promotional placements clearly marked for users'} /><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{homeAds.map(app=><AppCard key={app.id} app={app} favorite={favoriteIds.has(app.id)} onFavorite={()=>void toggleFavorite(app.id)} />)}</div></section>}
 
     {featured.length>0 && !query && category==='all' && <section className="mt-9"><SectionTitle icon={Rocket} title={language==='ar'?'تطبيقات مميزة':'Featured apps'} description={language==='ar'?'اختيارات بارزة من منظومة Salla':'Highlighted apps from the Salla ecosystem'} /><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{featured.slice(0,6).map(app=><AppCard key={app.id} app={app} favorite={favoriteIds.has(app.id)} onFavorite={()=>void toggleFavorite(app.id)} />)}</div></section>}
 
