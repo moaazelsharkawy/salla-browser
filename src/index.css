@@ -404,7 +404,7 @@ html:not(.dark) .decor-orbit { background:rgba(21,159,220,.055); }
   right:12px;
   bottom:max(12px,env(safe-area-inset-bottom));
   display:grid;
-  grid-template-columns:repeat(5,1fr);
+  grid-template-columns:repeat(4,1fr);
   min-height:66px;
   overflow:hidden;
   border:0 !important;
