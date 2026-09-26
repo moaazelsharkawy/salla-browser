@@ -63,7 +63,7 @@ export default function AuthCallback() {
       const raw = error instanceof Error ? error.message : 'PASSKEY_FAILED';
       setMessage(
         raw.includes('PASSKEY_UNSUPPORTED')
-          ? (ar ? 'هذا الجهاز أو المتصفح لا يدعم Passkey حاليا يمكنك المتابعة بدونها' : 'This device or browser does not support passkeys right now. You can continue without it.')
+          ? (ar ? 'هذا الجهاز أو المتصفح لا يدعم طريقة الدخول الآمن حاليا ويمكنك المتابعة بدونها' : 'This device or browser does not support passkeys right now. You can continue without it.')
           : (ar ? 'لم يتم تفعيل البصمة يمكنك المحاولة مرة أخرى أو المتابعة بدونها' : 'Passkey setup was not completed. Try again or continue without it.'),
       );
     }

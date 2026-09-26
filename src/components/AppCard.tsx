@@ -28,7 +28,7 @@ export function AppCard({ app, favorite = false, onFavorite }: { app: DirectoryA
             </div>
 
             {onFavorite && (
-              <button type="button" aria-label="favorite" onClick={onFavorite} className={`icon-button favorite-button h-9 w-9 ${favorite ? 'text-rose-300' : ''}`}>
+              <button type="button" aria-label="favorite" onClick={onFavorite} className={`icon-button favorite-button shrink-0 ${favorite ? 'text-rose-300' : ''}`}>
                 <Heart className={`h-[18px] w-[18px] ${favorite ? 'fill-current' : ''}`} />
               </button>
             )}

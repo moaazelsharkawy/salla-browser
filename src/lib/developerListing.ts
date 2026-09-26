@@ -41,5 +41,52 @@ export function friendlySubmissionError(raw: string, language: 'ar' | 'en') {
   if (message.includes('developer_app_limit')) return ar ? 'وصلت إلى الحد الأقصى للتطبيقات المسموح بها لحسابك' : 'You reached the maximum number of apps allowed for your account';
   if (message.includes('developer_pending_limit')) return ar ? 'لديك الحد الأقصى من الطلبات قيد المراجعة حاليا' : 'You already have the maximum number of active review requests';
   if (message.includes('payment_required')) return ar ? 'يجب إكمال رسوم الإدراج قبل مراجعة هذا الطلب' : 'Listing payment must be completed before review';
+  if (message.includes('payment_setup_incomplete')) return ar ? 'الدفع غير متاح مؤقتا حاول مرة أخرى لاحقا' : 'Checkout is temporarily unavailable Please try again later';
+  if (message.includes('checkout_unavailable') || message.includes('provider_rejected') || message.includes('checkout_invalid_url')) return ar ? 'تعذر تجهيز صفحة الدفع الآمنة حاول مرة أخرى' : 'Could not prepare the secure checkout Please try again';
   return ar ? 'تعذر إكمال العملية حاول مرة أخرى' : 'Could not complete the request Please try again';
+}
+
+export async function createListingCheckout(submissionId: string): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('create-listing-checkout', { body: { submission_id: submissionId } });
+  const code = typeof data?.error === 'string' ? data.error : error?.message;
+  if (error || !data?.checkout_url) throw new Error(code || 'checkout_unavailable');
+
+  let checkoutUrl: URL;
+  try {
+    checkoutUrl = new URL(String(data.checkout_url));
+  } catch {
+    throw new Error('checkout_invalid_url');
+  }
+
+  if (checkoutUrl.protocol !== 'https:' || checkoutUrl.hostname !== 'mall.salla-shop.com' || !checkoutUrl.pathname.startsWith('/api-checkout/')) {
+    throw new Error('checkout_invalid_url');
+  }
+  return checkoutUrl.toString();
+}
+
+export async function loadDeveloperDraft<T extends Record<string, string>>(userId: string, draftKey: string): Promise<T | null> {
+  const { data, error } = await supabase
+    .from('developer_submission_drafts')
+    .select('form_data')
+    .eq('user_id', userId)
+    .eq('draft_key', draftKey)
+    .maybeSingle();
+  if (error || !data?.form_data || typeof data.form_data !== 'object') return null;
+  return data.form_data as T;
+}
+
+export async function saveDeveloperDraft(userId: string, draftKey: string, appId: string | null, formData: Record<string, string>) {
+  const { error } = await supabase.from('developer_submission_drafts').upsert({
+    user_id: userId,
+    draft_key: draftKey,
+    app_id: appId,
+    form_data: formData,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id,draft_key' });
+  if (error) throw error;
+}
+
+export async function deleteDeveloperDraft(userId: string, draftKey: string) {
+  const { error } = await supabase.from('developer_submission_drafts').delete().eq('user_id', userId).eq('draft_key', draftKey);
+  if (error) throw error;
 }

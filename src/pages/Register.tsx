@@ -26,7 +26,7 @@ export default function Register() {
     setLoading(false);
     if (error) return setMessage(ar ? 'تعذر إنشاء الحساب تحقق من البيانات أو استخدم بريدا آخر' : 'Account could not be created Check your details or use another email');
     if (!data.session) {
-      setMessage(ar ? 'تم إنشاء حساب المطور راجع بريدك لتأكيده ثم سجل الدخول وبعدها سيظهر لك تفعيل البصمة' : 'Developer account created. Confirm your email, then sign in. Passkey setup will be offered after sign-in.');
+      setMessage(ar ? 'تم إنشاء حساب المطور راجع بريدك لتأكيده ثم سجل الدخول وبعدها سيظهر لك تفعيل الدخول الآمن' : 'Developer account created. Confirm your email, then sign in. Passkey setup will be offered after sign-in.');
       return;
     }
     navigate('/auth/callback?next=%2Fprofile&source=register', { replace: true });

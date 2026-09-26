@@ -1,10 +1,16 @@
-import { CircleDollarSign, Globe2, Image, Mail, Package2, Send, ShieldCheck, TriangleAlert } from 'lucide-react';
+import {
+  AppWindow, CircleDollarSign, FileText, Globe2, Image, Mail, MapPinned, Package2,
+  RefreshCcw, Save, Send, ShieldCheck, TriangleAlert
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { SectionTitle } from '../components/SectionTitle';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { DEFAULT_DEVELOPER_LISTING_SETTINGS, friendlySubmissionError, loadDeveloperListingSettings } from '../lib/developerListing';
+import {
+  DEFAULT_DEVELOPER_LISTING_SETTINGS, deleteDeveloperDraft,
+  friendlySubmissionError, loadDeveloperDraft, loadDeveloperListingSettings, saveDeveloperDraft
+} from '../lib/developerListing';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { normalizeUrl } from '../lib/url';
 import type { AppSubmission, Category, DeveloperListingSettings, DirectoryApp } from '../types';
@@ -19,6 +25,17 @@ const emptyForm = (email = '') => ({
   category_id: '', countries: 'ALL', privacy_url: '', contact_email: email, notes: ''
 });
 
+type SubmissionForm = ReturnType<typeof emptyForm>;
+type DraftState = 'idle' | 'saving' | 'saved' | 'error';
+const DRAFT_KEY = 'new-app-listing';
+
+function hasDraftContent(form: SubmissionForm) {
+  return Boolean(
+    form.app_name.trim() || form.website_url.trim() || form.icon_url.trim() || form.description_ar.trim() ||
+    form.description_en.trim() || form.category_id || form.privacy_url.trim() || form.notes.trim()
+  );
+}
+
 export default function SubmitApp() {
   const { user } = useAuth();
   const { language } = useLanguage();
@@ -27,21 +44,20 @@ export default function SubmitApp() {
   const isEdit = Boolean(appId);
   const [categories, setCategories] = useState<Category[]>([]);
   const [sourceApp, setSourceApp] = useState<DirectoryApp | null>(null);
-  const [form, setForm] = useState(() => emptyForm(user?.email || ''));
+  const [form, setForm] = useState<SubmissionForm>(() => emptyForm(user?.email || ''));
   const [loading, setLoading] = useState(false);
   const [loadingApp, setLoadingApp] = useState(Boolean(appId));
   const [message, setMessage] = useState<string | null>(null);
   const [settings, setSettings] = useState<DeveloperListingSettings>(DEFAULT_DEVELOPER_LISTING_SETTINGS);
   const [settingsLoading, setSettingsLoading] = useState(true);
+  const [draftReady, setDraftReady] = useState(isEdit);
+  const [draftState, setDraftState] = useState<DraftState>('idle');
+  const [draftRestored, setDraftRestored] = useState(false);
 
   useEffect(() => {
     if (!user?.email) return;
     setForm((current) => current.contact_email ? current : { ...current, contact_email: user.email || '' });
   }, [user?.email]);
-
-  useEffect(() => {
-    if (language === 'ar') setForm((current) => current.countries === 'ALL' ? { ...current, countries: 'كل الدول' } : current);
-  }, [language]);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -69,25 +85,67 @@ export default function SubmitApp() {
         }
         setSourceApp(app);
         setForm({
-          app_name: app.name, app_version: app.version || '1.0.0', website_url: app.website_url, icon_url: app.icon_url || '',
-          description_ar: app.description_ar, description_en: app.description_en, category_id: app.category_id || '',
-          countries: app.supported_countries.includes('ALL') && language === 'ar' ? 'كل الدول' : app.supported_countries.join(','), privacy_url: app.privacy_url || '', contact_email: user.email || app.developer_name || '', notes: ''
+          app_name: app.name,
+          app_version: app.version || '1.0.0',
+          website_url: app.website_url,
+          icon_url: app.icon_url || '',
+          description_ar: app.description_ar,
+          description_en: app.description_en,
+          category_id: app.category_id || '',
+          countries: app.supported_countries.includes('ALL') ? 'ALL' : app.supported_countries.join(' '),
+          privacy_url: app.privacy_url || '',
+          contact_email: user.email || app.developer_name || '',
+          notes: ''
         });
-      } finally { setLoadingApp(false); }
+      } finally {
+        setLoadingApp(false);
+      }
     })();
   }, [appId, language, user]);
 
-  const update = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }));
+  useEffect(() => {
+    if (isEdit || !user || !isSupabaseConfigured) { setDraftReady(true); return; }
+    let active = true;
+    setDraftReady(false);
+    void (async () => {
+      const draft = await loadDeveloperDraft<SubmissionForm>(user.id, DRAFT_KEY);
+      if (!active) return;
+      if (draft) {
+        setForm({ ...emptyForm(user.email || ''), ...draft, contact_email: draft.contact_email || user.email || '' });
+        setDraftRestored(true);
+        setDraftState('saved');
+      }
+      setDraftReady(true);
+    })();
+    return () => { active = false; };
+  }, [isEdit, user]);
+
+  useEffect(() => {
+    if (isEdit || !draftReady || !user || !isSupabaseConfigured) return;
+    if (!hasDraftContent(form)) { setDraftState('idle'); return; }
+    setDraftState('saving');
+    const timer = window.setTimeout(() => {
+      void saveDeveloperDraft(user.id, DRAFT_KEY, null, form)
+        .then(() => setDraftState('saved'))
+        .catch(() => setDraftState('error'));
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [draftReady, form, isEdit, user]);
+
+  const update = (key: keyof SubmissionForm, value: string) => setForm((current) => ({ ...current, [key]: value }));
   const title = useMemo(() => isEdit ? (language === 'ar' ? 'تعديل بيانات التطبيق' : 'Update app details') : (language === 'ar' ? 'طلب إدراج تطبيق' : 'Submit an app'), [isEdit, language]);
-  const description = useMemo(() => isEdit ? (language === 'ar' ? 'ترسل التعديلات للمراجعة ويظل التطبيق الحالي كما هو حتى الموافقة' : 'Changes are reviewed while the current live app stays unchanged until approval') : (language === 'ar' ? 'أرسل بيانات تطبيقك وأكمل رسوم الإدراج إن كانت مفعلة ثم تبدأ المراجعة' : 'Send your app details complete the listing fee when enabled then review begins'), [isEdit, language]);
+  const description = useMemo(() => isEdit ? (language === 'ar' ? 'ترسل التعديلات للمراجعة ويظل التطبيق الحالي كما هو حتى الموافقة' : 'Changes are reviewed while the current live app stays unchanged until approval') : (language === 'ar' ? 'أكمل بيانات التطبيق ثم انتقل إلى الدفع إذا كانت رسوم الإدراج مفعلة' : 'Complete the app details then continue to payment when listing fees are enabled'), [isEdit, language]);
   const paymentRequired = !isEdit && settings.fee_enabled && settings.fee_amount > 0;
   const newListingsDisabled = !isEdit && !settings.listing_enabled;
 
-  const startCheckout = async (submissionId: string, popup: Window | null) => {
-    const { data, error } = await supabase.functions.invoke('create-listing-checkout', { body: { submission_id: submissionId } });
-    if (error || !data?.checkout_url) throw new Error(error?.message || 'checkout_unavailable');
-    if (popup && !popup.closed) popup.location.href = data.checkout_url;
-    else window.location.href = data.checkout_url;
+  const startNew = async () => {
+    if (!user) return;
+    if (hasDraftContent(form) && !window.confirm(language === 'ar' ? 'سيتم حذف المسودة الحالية والبدء من جديد' : 'Your current draft will be cleared and a new form will start')) return;
+    setForm(emptyForm(user.email || ''));
+    setDraftRestored(false);
+    setDraftState('idle');
+    setMessage(null);
+    if (isSupabaseConfigured) await deleteDeveloperDraft(user.id, DRAFT_KEY).catch(() => undefined);
   };
 
   const submit = async () => {
@@ -96,12 +154,15 @@ export default function SubmitApp() {
     const icon = form.icon_url ? normalizeUrl(form.icon_url) : null;
     const privacy = form.privacy_url ? normalizeUrl(form.privacy_url) : null;
     const version = form.app_version.trim();
+    if (!form.app_name.trim()) return setMessage(language === 'ar' ? 'اكتب اسم التطبيق' : 'Enter the app name');
     if (!website) return setMessage(language === 'ar' ? 'رابط التطبيق غير صالح' : 'Invalid app URL');
     if (!version || version.length > 32) return setMessage(language === 'ar' ? 'اكتب إصدارا صحيحا للتطبيق' : 'Enter a valid app version');
+    if (!form.contact_email.trim()) return setMessage(language === 'ar' ? 'اكتب بريد التواصل' : 'Enter a contact email');
 
-    const checkoutWindow = paymentRequired ? window.open('about:blank', '_blank') : null;
+    const checkoutWindow = paymentRequired ? window.open('/listing-checkout', '_blank') : null;
     setLoading(true);
     setMessage(null);
+    let createdSubmission: AppSubmission | null = null;
 
     try {
       if (isEdit && appId) {
@@ -127,49 +188,104 @@ export default function SubmitApp() {
       }).select('*').single();
 
       if (error || !data) throw new Error(error?.message || 'submission_failed');
-      const submission = data as AppSubmission;
+      createdSubmission = data as AppSubmission;
 
-      if (!isEdit && submission.payment_status === 'awaiting_payment') {
-        await startCheckout(submission.id, checkoutWindow);
-        setMessage(language === 'ar' ? 'تم إنشاء الطلب افتح صفحة الدفع الآمنة لإكمال رسوم الإدراج' : 'Submission created Complete the listing fee in the secure checkout page');
-      } else {
-        checkoutWindow?.close();
-        setMessage(language === 'ar' ? (isEdit ? 'تم إرسال التعديلات للمراجعة بنجاح' : 'تم إرسال الطلب للمراجعة بنجاح') : (isEdit ? 'Update sent for review' : 'Submission sent for review'));
-        if (!isEdit) setForm(emptyForm(user.email || ''));
+      if (!isEdit) {
+        await deleteDeveloperDraft(user.id, DRAFT_KEY).catch(() => undefined);
+        setDraftState('idle');
+        setDraftRestored(false);
+      }
+
+      if (!isEdit && createdSubmission.payment_status === 'awaiting_payment') {
+        const launcherUrl = `/listing-checkout?submission=${encodeURIComponent(createdSubmission.id)}`;
+        setMessage(language === 'ar' ? 'تم فتح نافذة الدفع الآمنة' : 'Secure checkout opened');
+        if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.location.replace(launcherUrl);
+        else window.location.assign(launcherUrl);
+        return;
+      }
+
+      if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.location.replace('/my-submissions');
+      setMessage(language === 'ar' ? (isEdit ? 'تم إرسال التعديلات للمراجعة بنجاح' : 'تم إرسال الطلب للمراجعة بنجاح') : (isEdit ? 'Update sent for review' : 'Submission sent for review'));
+      if (!isEdit) {
+        setForm(emptyForm(user.email || ''));
+        setDraftReady(true);
       }
     } catch (error) {
-      checkoutWindow?.close();
       const raw = error instanceof Error ? error.message : '';
-      setMessage(friendlySubmissionError(raw, language));
-    } finally { setLoading(false); }
+      if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.location.replace('/listing-checkout?error=request');
+      if (createdSubmission?.payment_status === 'awaiting_payment') {
+        setMessage(language === 'ar'
+          ? 'تم حفظ طلبك ويمكنك استكمال الدفع من صفحة طلباتي'
+          : 'Your request was saved You can continue payment from My submissions');
+      } else {
+        setMessage(friendlySubmissionError(raw, language));
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const loadingLabel = language === 'ar' ? 'جاري تحميل البيانات' : 'Loading data';
+
   return <div className="page-container py-7 sm:py-10">
-    <SectionTitle icon={Send} title={title} description={description} action={<Link to="/my-submissions" className="secondary-button hidden sm:inline-flex">{language === 'ar' ? 'طلباتي' : 'My submissions'}</Link>} />
+    <SectionTitle
+      icon={Send}
+      title={title}
+      description={description}
+      action={<Link to="/my-submissions" className="secondary-button hidden sm:inline-flex">{language === 'ar' ? 'طلباتي' : 'My submissions'}</Link>}
+    />
 
-    {newListingsDisabled && <div className="developer-listing-warning mb-5"><TriangleAlert className="h-5 w-5" /><div><strong>{language === 'ar' ? 'استقبال طلبات الإدراج متوقف مؤقتا' : 'New app submissions are temporarily paused'}</strong><p>{language === 'ar' ? 'يمكنك متابعة طلباتك الحالية وتعديل التطبيقات المنشورة' : 'You can still track existing requests and update published apps'}</p></div></div>}
+    {newListingsDisabled && <div className="developer-listing-warning mb-5"><TriangleAlert className="h-6 w-6" /><div><strong>{language === 'ar' ? 'استقبال طلبات الإدراج متوقف مؤقتا' : 'New app submissions are temporarily paused'}</strong><p>{language === 'ar' ? 'يمكنك متابعة طلباتك الحالية وتعديل التطبيقات المنشورة' : 'You can still track existing requests and update published apps'}</p></div></div>}
 
-    <section className="content-panel p-6 sm:p-8">
-      <div className="mb-7 flex items-start gap-3 rounded-2xl bg-cyan-400/[0.06] p-4 sm:p-5"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" /><p className="text-xs font-semibold leading-6 text-slate-300">{language === 'ar' ? (isEdit ? 'لن تتغير بيانات التطبيق المنشورة حتى تعتمد الإدارة هذا التحديث' : 'الإدراج ليس تلقائيا تتم مراجعة بيانات التطبيق بعد إكمال الخطوات المطلوبة') : (isEdit ? 'Published app data will not change until an admin approves this update' : 'Listing is not automatic App details are reviewed after all required steps are completed')}</p></div>
+    {!isEdit && draftReady && <div className="draft-toolbar mb-4">
+      <div className="flex min-w-0 items-center gap-3"><div className="draft-status-icon"><Save className="h-5 w-5" /></div><div className="min-w-0"><strong>{draftRestored ? (language === 'ar' ? 'تم استكمال المسودة المحفوظة' : 'Saved draft restored') : (language === 'ar' ? 'حفظ تلقائي للمسودة' : 'Automatic draft saving')}</strong><p>{draftState === 'saving' ? (language === 'ar' ? 'جاري حفظ التغييرات' : 'Saving changes') : draftState === 'error' ? (language === 'ar' ? 'تعذر حفظ آخر تعديل وسيعاد المحاولة عند الكتابة' : 'The latest change could not be saved It will retry when you edit') : (language === 'ar' ? 'يمكنك مغادرة الصفحة والعودة لاحقا لاستكمال البيانات' : 'You can leave this page and continue the form later')}</p></div></div>
+      <button type="button" className="secondary-button draft-reset-button" onClick={() => void startNew()}><RefreshCcw className="h-5 w-5" />{language === 'ar' ? 'بدء من جديد' : 'Start over'}</button>
+    </div>}
 
-      {!isEdit && !settingsLoading && <div className="listing-fee-card mb-7"><div className="flex items-center gap-3"><div className="soft-icon flex h-11 w-11 items-center justify-center rounded-2xl"><CircleDollarSign className="h-5 w-5" /></div><div><h3 className="text-sm font-black">{language === 'ar' ? 'رسوم إدراج التطبيق' : 'App listing fee'}</h3><p className="muted-text mt-1 text-[11px] font-semibold">{paymentRequired ? (language === 'ar' ? `${settings.fee_amount} Pi تدفع عبر صفحة Salla Shop الآمنة` : `${settings.fee_amount} Pi paid through the secure Salla Shop checkout`) : (language === 'ar' ? 'الإدراج متاح حاليا بدون رسوم' : 'Listing is currently available with no fee')}</p></div></div></div>}
+    <section className="content-panel submission-form-panel p-4 sm:p-7">
+      <div className="submission-intro"><div className="submission-intro-icon"><ShieldCheck className="h-6 w-6" /></div><div><h2>{language === 'ar' ? 'بيانات واضحة تعني مراجعة أسرع' : 'Clear details help us review faster'}</h2><p>{language === 'ar' ? (isEdit ? 'لن تتغير النسخة المنشورة حتى تعتمد الإدارة التحديث' : 'سيتم حفظ الطلب ثم تبدأ المراجعة بعد إكمال الدفع عندما تكون الرسوم مفعلة') : (isEdit ? 'The live version stays unchanged until the update is approved' : 'Your request is saved and review begins after payment when listing fees are enabled')}</p></div></div>
 
-      {loadingApp ? <div className="empty-panel"><span className="soft-spinner" />{language === 'ar' ? 'جاري تحميل بيانات التطبيق' : 'Loading app details'}</div> : <div className="submission-form-grid grid gap-5 md:grid-cols-2 md:gap-x-6 md:gap-y-6">
-        <label className="field-block"><span>{language === 'ar' ? 'اسم التطبيق' : 'App name'}</span><input value={form.app_name} onChange={(e) => update('app_name', e.target.value)} /></label>
-        <label className="field-block"><span>{language === 'ar' ? 'إصدار التطبيق' : 'App version'}</span><div className="field-shell"><Package2 className="h-4 w-4" /><input dir="ltr" value={form.app_version} onChange={(e) => update('app_version', e.target.value)} placeholder="1.0.0" /></div></label>
-        <label className="field-block"><span>{language === 'ar' ? 'رابط التطبيق' : 'App URL'}</span><div className="field-shell"><Globe2 className="h-4 w-4" /><input dir="ltr" value={form.website_url} onChange={(e) => update('website_url', e.target.value)} placeholder="https://" /></div></label>
-        <label className="field-block"><span>{language === 'ar' ? 'رابط الأيقونة' : 'Icon URL'}</span><div className="field-shell"><Image className="h-4 w-4" /><input dir="ltr" value={form.icon_url} onChange={(e) => update('icon_url', e.target.value)} placeholder="https://" /></div></label>
-        <label className="field-block"><span>{language === 'ar' ? 'بريد التواصل' : 'Contact email'}</span><div className="field-shell"><Mail className="h-4 w-4" /><input dir="ltr" type="email" value={form.contact_email} onChange={(e) => update('contact_email', e.target.value)} /></div></label>
-        <label className="field-block"><span>{language === 'ar' ? 'القسم' : 'Category'}</span><select value={form.category_id} onChange={(e) => update('category_id', e.target.value)}><option value="">{language === 'ar' ? 'بدون قسم' : 'No category'}</option>{categories.map((category) => <option key={category.id} value={category.id}>{language === 'ar' ? category.name_ar : category.name_en}</option>)}</select></label>
-        <label className="field-block md:col-span-2"><span>{language === 'ar' ? 'الدول المتاحة' : 'Available countries'}</span><input dir="ltr" value={form.countries} onChange={(e) => update('countries', e.target.value)} placeholder={language === 'ar' ? 'كل الدول أو EG SA AE' : 'ALL EG SA AE'} /><small>{language === 'ar' ? 'اكتب كل الدول أو اكتب رموز الدول بمسافة' : 'Use ALL for every country or enter country codes separated by spaces'}</small></label>
-        <label className="field-block md:col-span-2"><span>{language === 'ar' ? 'الوصف بالعربية' : 'Arabic description'}</span><textarea rows={5} value={form.description_ar} onChange={(e) => update('description_ar', e.target.value)} /></label>
-        <label className="field-block md:col-span-2"><span>{language === 'ar' ? 'الوصف بالإنجليزية' : 'English description'}</span><textarea rows={5} dir="ltr" value={form.description_en} onChange={(e) => update('description_en', e.target.value)} /></label>
-        <label className="field-block"><span>{language === 'ar' ? 'سياسة الخصوصية' : 'Privacy policy'}</span><input dir="ltr" value={form.privacy_url} onChange={(e) => update('privacy_url', e.target.value)} placeholder="https://" /></label>
-        <label className="field-block"><span>{language === 'ar' ? 'ملاحظات للإدارة' : 'Notes for admin'}</span><input value={form.notes} onChange={(e) => update('notes', e.target.value)} /></label>
+      {loadingApp || (!isEdit && !draftReady) ? <div className="empty-panel mt-5"><span className="soft-spinner" />{loadingLabel}</div> : <div className="mt-5 space-y-4">
+        <section className="submission-section">
+          <div className="submission-section-head"><div className="submission-section-icon"><AppWindow className="h-5 w-5" /></div><div><h3>{language === 'ar' ? 'البيانات الأساسية' : 'Basic information'}</h3><p>{language === 'ar' ? 'اسم التطبيق والإصدار والقسم ووسيلة التواصل' : 'App name version category and contact details'}</p></div></div>
+          <div className="submission-form-grid mt-4 grid gap-4 md:grid-cols-2">
+            <label className="field-block"><span>{language === 'ar' ? 'اسم التطبيق' : 'App name'}</span><input value={form.app_name} onChange={(e) => update('app_name', e.target.value)} placeholder={language === 'ar' ? 'مثال Salla Stars' : 'Example Salla Stars'} /></label>
+            <label className="field-block"><span>{language === 'ar' ? 'إصدار التطبيق' : 'App version'}</span><div className="field-shell"><Package2 className="field-leading-icon" /><input dir="ltr" value={form.app_version} onChange={(e) => update('app_version', e.target.value)} placeholder="1.0.0" /></div></label>
+            <label className="field-block"><span>{language === 'ar' ? 'القسم' : 'Category'}</span><select value={form.category_id} onChange={(e) => update('category_id', e.target.value)}><option value="">{language === 'ar' ? 'اختر القسم' : 'Choose a category'}</option>{categories.map((category) => <option key={category.id} value={category.id}>{language === 'ar' ? category.name_ar : category.name_en}</option>)}</select></label>
+            <label className="field-block"><span>{language === 'ar' ? 'بريد التواصل' : 'Contact email'}</span><div className="field-shell"><Mail className="field-leading-icon" /><input dir="ltr" type="email" value={form.contact_email} onChange={(e) => update('contact_email', e.target.value)} /></div></label>
+          </div>
+        </section>
+
+        <section className="submission-section">
+          <div className="submission-section-head"><div className="submission-section-icon"><Globe2 className="h-5 w-5" /></div><div><h3>{language === 'ar' ? 'الروابط والتوفر' : 'Links and availability'}</h3><p>{language === 'ar' ? 'أضف الروابط الرسمية وحدد الدول التي يعمل بها التطبيق' : 'Add official links and choose where the app is available'}</p></div></div>
+          <div className="submission-form-grid mt-4 grid gap-4 md:grid-cols-2">
+            <label className="field-block"><span>{language === 'ar' ? 'رابط التطبيق' : 'App URL'}</span><div className="field-shell"><Globe2 className="field-leading-icon" /><input dir="ltr" value={form.website_url} onChange={(e) => update('website_url', e.target.value)} placeholder="https://" /></div></label>
+            <label className="field-block"><span>{language === 'ar' ? 'رابط أيقونة التطبيق' : 'App icon URL'}</span><div className="field-shell"><Image className="field-leading-icon" /><input dir="ltr" value={form.icon_url} onChange={(e) => update('icon_url', e.target.value)} placeholder="https://" /></div></label>
+            <label className="field-block"><span>{language === 'ar' ? 'سياسة الخصوصية' : 'Privacy policy'}</span><input dir="ltr" value={form.privacy_url} onChange={(e) => update('privacy_url', e.target.value)} placeholder="https://" /></label>
+            <label className="field-block"><span>{language === 'ar' ? 'الدول المتاحة' : 'Available countries'}</span><div className="field-shell"><MapPinned className="field-leading-icon" /><input dir="ltr" value={language === 'ar' && form.countries === 'ALL' ? 'كل الدول' : form.countries} onChange={(e) => update('countries', e.target.value)} placeholder={language === 'ar' ? 'كل الدول أو EG SA AE' : 'ALL EG SA AE'} /></div><small>{language === 'ar' ? 'اكتب كل الدول أو رموز الدول بمسافة' : 'Use ALL for every country or enter country codes separated by spaces'}</small></label>
+          </div>
+        </section>
+
+        <section className="submission-section">
+          <div className="submission-section-head"><div className="submission-section-icon"><FileText className="h-5 w-5" /></div><div><h3>{language === 'ar' ? 'وصف التطبيق' : 'App description'}</h3><p>{language === 'ar' ? 'اشرح فائدة التطبيق بوضوح للمستخدمين وفريق المراجعة' : 'Explain the app clearly for users and the review team'}</p></div></div>
+          <div className="submission-form-grid mt-4 grid gap-4">
+            <label className="field-block"><span>{language === 'ar' ? 'الوصف بالعربية' : 'Arabic description'}</span><textarea rows={5} value={form.description_ar} onChange={(e) => update('description_ar', e.target.value)} placeholder={language === 'ar' ? 'اكتب وصفا واضحا ومختصرا للتطبيق' : 'Write a clear Arabic description'} /></label>
+            <label className="field-block"><span>{language === 'ar' ? 'الوصف بالإنجليزية' : 'English description'}</span><textarea rows={5} dir="ltr" value={form.description_en} onChange={(e) => update('description_en', e.target.value)} placeholder="Write a clear English description" /></label>
+            <label className="field-block"><span>{language === 'ar' ? 'ملاحظات لفريق المراجعة' : 'Notes for the review team'}</span><textarea rows={3} value={form.notes} onChange={(e) => update('notes', e.target.value)} placeholder={language === 'ar' ? 'اختياري' : 'Optional'} /></label>
+          </div>
+        </section>
       </div>}
 
-      {message && <div className="form-message mt-6">{message}</div>}
-      <button className="primary-button mt-7 w-full sm:w-auto" disabled={loading || loadingApp || settingsLoading || newListingsDisabled || (isEdit && !sourceApp) || !form.app_name.trim() || !form.app_version.trim() || !form.website_url.trim() || !form.contact_email.trim()} onClick={() => void submit()}><Send className="h-4 w-4" />{loading ? (language === 'ar' ? 'جاري الإرسال' : 'Sending') : (language === 'ar' ? (isEdit ? 'إرسال التعديلات للمراجعة' : paymentRequired ? 'المتابعة إلى الدفع' : 'إرسال للمراجعة') : (isEdit ? 'Send update for review' : paymentRequired ? 'Continue to payment' : 'Send for review'))}</button>
+      {!isEdit && !settingsLoading && <div className="listing-fee-card mt-5"><div className="flex items-center gap-3"><div className="soft-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"><CircleDollarSign className="h-6 w-6" /></div><div><h3 className="text-sm font-black">{language === 'ar' ? 'رسوم إدراج التطبيق' : 'App listing fee'}</h3><p className="muted-text mt-1 text-[11px] font-semibold leading-5">{paymentRequired ? (language === 'ar' ? `${settings.fee_amount} Pi عبر صفحة الدفع الآمنة في Salla Shop` : `${settings.fee_amount} Pi through the secure Salla Shop checkout`) : (language === 'ar' ? 'الإدراج متاح حاليا بدون رسوم' : 'Listing is currently available with no fee')}</p></div></div></div>}
+
+      {message && <div className="form-message mt-5">{message}</div>}
+      <div className="submission-actions mt-5">
+        <button className="primary-button submission-main-action" disabled={loading || loadingApp || settingsLoading || newListingsDisabled || (isEdit && !sourceApp) || !form.app_name.trim() || !form.app_version.trim() || !form.website_url.trim() || !form.contact_email.trim()} onClick={() => void submit()}>
+          {loading ? <span className="button-spinner" /> : <Send className="h-5 w-5" />}
+          {loading ? (language === 'ar' ? (paymentRequired ? 'جاري تجهيز الدفع' : 'جاري إرسال الطلب') : (paymentRequired ? 'Preparing checkout' : 'Sending request')) : (language === 'ar' ? (isEdit ? 'إرسال التعديلات للمراجعة' : paymentRequired ? 'المتابعة إلى الدفع' : 'إرسال للمراجعة') : (isEdit ? 'Send update for review' : paymentRequired ? 'Continue to payment' : 'Send for review'))}
+        </button>
+        {!isEdit && <Link to="/my-submissions" className="secondary-button"><ShieldCheck className="h-5 w-5" />{language === 'ar' ? 'متابعة طلباتي' : 'Track my submissions'}</Link>}
+      </div>
     </section>
   </div>;
 }
