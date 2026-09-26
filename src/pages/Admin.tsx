@@ -1,14 +1,15 @@
 import {
   AppWindow, Blocks, BriefcaseBusiness, Check, CircleDollarSign, FolderKanban, Gamepad2, Gauge,
   Globe2, Landmark, LayoutGrid, MessageCircle, Package, Save, Settings2, ShieldCheck, ShoppingBag,
-  Smartphone, Sparkles, Store, Ban, Trash2, WalletCards, Wrench, X
+  Smartphone, Sparkles, Store, Ban, Trash2, UserCog, WalletCards, Wrench, X
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { normalizeUrl } from '../lib/url';
 import { categoryIcon } from '../lib/appIcons';
-import type { AppStatus, AppSubmission, Category, DirectoryApp, EmbedMode, HealthStatus } from '../types';
+import { DEFAULT_DEVELOPER_LISTING_SETTINGS, paymentStatusLabel } from '../lib/developerListing';
+import type { AppStatus, AppSubmission, Category, DeveloperListingSettings, DirectoryApp, EmbedMode, HealthStatus } from '../types';
 
 const emptyApp = {
   id: '', slug: '', name: '', version: '1.0.0', short_description_ar: '', short_description_en: '', description_ar: '', description_en: '', icon_url: '', website_url: '', privacy_url: '', developer_name: 'Salla', category_id: '', supported_countries: 'ALL', status: 'published' as AppStatus, suspension_reason: '', verified: true, featured: false, embed_mode: 'iframe' as EmbedMode, health_status: 'online' as HealthStatus, installable: true, sort_order: 100
@@ -33,12 +34,13 @@ function readableError(message: string, language: 'ar' | 'en') {
   const lower = message.toLowerCase();
   if (lower.includes('apps_slug_key') || lower.includes('duplicate key')) return language === 'ar' ? 'يوجد تطبيق مسجل بهذا المعرف بالفعل' : 'An app with this identifier already exists';
   if (lower.includes('not authorized') || lower.includes('permission')) return language === 'ar' ? 'لا توجد صلاحية كافية لتنفيذ هذا الاجراء' : 'You do not have permission for this action';
-  return message;
+  if (lower.includes('payment_required')) return language === 'ar' ? 'يجب إكمال رسوم الإدراج قبل مراجعة الطلب' : 'Listing payment must be completed before review';
+  return language === 'ar' ? 'تعذر إكمال العملية حاول مرة أخرى' : 'Could not complete the action Please try again';
 }
 
 export default function Admin() {
   const { language } = useLanguage();
-  const [tab, setTab] = useState<'overview' | 'apps' | 'categories' | 'submissions'>('overview');
+  const [tab, setTab] = useState<'overview' | 'apps' | 'categories' | 'submissions' | 'developer'>('overview');
   const [apps, setApps] = useState<DirectoryApp[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [submissions, setSubmissions] = useState<AppSubmission[]>([]);
@@ -47,17 +49,28 @@ export default function Admin() {
   const [editingApp, setEditingApp] = useState<string | null>(null);
   const [categoryForm, setCategoryForm] = useState({ id: '', slug: '', name_ar: '', name_en: '', description_ar: '', description_en: '', icon: 'store', sort_order: 100, is_active: true });
   const [message, setMessage] = useState<string | null>(null);
+  const [developerSettings, setDeveloperSettings] = useState<DeveloperListingSettings>(DEFAULT_DEVELOPER_LISTING_SETTINGS);
 
   const refresh = useCallback(async () => {
     if (!isSupabaseConfigured) return;
-    const [appsResult, categoriesResult, submissionsResult] = await Promise.all([
+    const [appsResult, categoriesResult, submissionsResult, settingsResult] = await Promise.all([
       supabase.from('apps').select('*, category:categories(*)').order('sort_order'),
       supabase.from('categories').select('*').order('sort_order'),
-      supabase.from('app_submissions').select('*').order('created_at', { ascending: false })
+      supabase.from('app_submissions').select('*').order('created_at', { ascending: false }),
+      supabase.from('app_settings').select('value').eq('key', 'developer_listing').maybeSingle()
     ]);
     setApps((appsResult.data ?? []) as DirectoryApp[]);
     setCategories((categoriesResult.data ?? []) as Category[]);
     setSubmissions((submissionsResult.data ?? []) as AppSubmission[]);
+    const rawSettings = (settingsResult.data?.value || {}) as Partial<DeveloperListingSettings>;
+    setDeveloperSettings({
+      listing_enabled: rawSettings.listing_enabled ?? true,
+      fee_enabled: rawSettings.fee_enabled ?? false,
+      fee_amount: Number(rawSettings.fee_amount ?? 0),
+      currency: 'pi',
+      max_apps_per_developer: Math.max(1, Number(rawSettings.max_apps_per_developer ?? 5)),
+      max_pending_submissions: Math.max(1, Number(rawSettings.max_pending_submissions ?? 2)),
+    });
   }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
@@ -128,8 +141,28 @@ export default function Admin() {
     setMessage(language === 'ar' ? 'تم حفظ القسم' : 'Category saved'); await refresh();
   };
 
+  const saveDeveloperSettings = async () => {
+    setMessage(null);
+    const normalized: DeveloperListingSettings = {
+      listing_enabled: Boolean(developerSettings.listing_enabled),
+      fee_enabled: Boolean(developerSettings.fee_enabled),
+      fee_amount: Math.max(0, Number(developerSettings.fee_amount || 0)),
+      currency: 'pi',
+      max_apps_per_developer: Math.max(1, Number(developerSettings.max_apps_per_developer || 1)),
+      max_pending_submissions: Math.max(1, Number(developerSettings.max_pending_submissions || 1)),
+    };
+    const { error } = await supabase.from('app_settings').upsert({ key: 'developer_listing', value: normalized, is_public: true, updated_at: new Date().toISOString() });
+    if (error) return setMessage(readableError(error.message, language));
+    setDeveloperSettings(normalized);
+    setMessage(language === 'ar' ? 'تم حفظ إعدادات المطورين' : 'Developer settings saved');
+  };
+
   const reviewSubmission = async (submission: AppSubmission, status: AppSubmission['status']) => {
     if (submission.status === 'approved' || submission.status === 'rejected') return;
+    if (submission.submission_type === 'new' && !['paid', 'not_required'].includes(submission.payment_status || 'not_required')) {
+      setMessage(language === 'ar' ? 'لا يمكن مراجعة الطلب قبل إكمال رسوم الإدراج' : 'The listing fee must be completed before review');
+      return;
+    }
     const note = window.prompt(language === 'ar' ? 'ملاحظة المراجعة اختيارية' : 'Review note optional', submission.review_note || '') ?? submission.review_note ?? '';
     setMessage(null);
     const { error } = await supabase.rpc('review_app_submission', { p_submission_id: submission.id, p_status: status, p_note: note || null });
@@ -140,7 +173,8 @@ export default function Admin() {
 
   const tabs = [
     ['overview', Gauge, language === 'ar' ? 'نظرة عامة' : 'Overview'], ['apps', AppWindow, language === 'ar' ? 'التطبيقات' : 'Apps'],
-    ['categories', FolderKanban, language === 'ar' ? 'الاقسام' : 'Categories'], ['submissions', ShieldCheck, language === 'ar' ? 'طلبات الادراج' : 'Submissions']
+    ['categories', FolderKanban, language === 'ar' ? 'الاقسام' : 'Categories'], ['submissions', ShieldCheck, language === 'ar' ? 'طلبات الادراج' : 'Submissions'],
+    ['developer', UserCog, language === 'ar' ? 'إعدادات المطورين' : 'Developer settings']
   ] as const;
 
   return <div className="page-container py-7 sm:py-10">
@@ -174,13 +208,29 @@ export default function Admin() {
       <section className="space-y-2">{apps.map((app) => <div key={app.id} className="content-panel p-4"><div className="flex items-center gap-3"><div className="app-icon h-11 w-11 overflow-hidden rounded-xl">{app.icon_url && <img src={app.icon_url} className="h-full w-full object-cover" alt="" />}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-black">{app.name}</p><span className="pill">v{app.version || '1.0.0'}</span><span className="pill">{app.status === 'published' ? (language === 'ar' ? 'منشور' : 'Published') : app.status === 'suspended' ? (language === 'ar' ? 'معلق' : 'Suspended') : (language === 'ar' ? 'مسودة' : 'Draft')}</span></div><p className="truncate text-[10px] font-semibold text-slate-500" dir="ltr">{app.website_url}</p>{app.status === 'suspended' && app.suspension_reason && <p className="mt-1 text-[10px] font-bold text-amber-600">{app.suspension_reason}</p>}</div></div><div className="mt-3 flex flex-wrap gap-2"><button className="secondary-button" onClick={() => editApp(app)}>{language === 'ar' ? 'تعديل' : 'Edit'}</button><button className={app.status === 'suspended' ? 'secondary-button' : 'danger-button'} onClick={() => void toggleSuspension(app)}><Ban className="h-4 w-4" />{app.status === 'suspended' ? (language === 'ar' ? 'اعادة التفعيل' : 'Reactivate') : (language === 'ar' ? 'تعليق' : 'Suspend')}</button><button className="icon-button h-10 w-10 text-rose-500" onClick={async () => { if (confirm(language === 'ar' ? 'حذف التطبيق' : 'Delete app')) { await supabase.from('apps').delete().eq('id', app.id); await refresh(); } }}><Trash2 className="h-4 w-4" /></button></div></div>)}</section>
     </div>}
 
-    {tab === 'categories' && <div className="mt-5 grid gap-4 lg:grid-cols-[.9fr_1.1fr]"><section className="content-panel p-5 sm:p-6"><h2 className="font-black">{language === 'ar' ? 'اضافة او تعديل قسم' : 'Add or edit category'}</h2><p className="muted-text mt-1 text-[11px]">{language === 'ar' ? 'اختر البيانات التي ستظهر للمستخدم في صفحة الاستكشاف' : 'Choose the data shown in Explore'}</p><div className="mt-5 space-y-4"><label className="field-block"><span>{language === 'ar' ? 'معرف القسم' : 'Category identifier'}</span><input dir="ltr" value={categoryForm.slug} onChange={(e) => setCategoryForm((c) => ({ ...c, slug: e.target.value }))} placeholder="web3" /></label><div className="grid gap-4 sm:grid-cols-2"><label className="field-block"><span>{language === 'ar' ? 'الاسم بالعربية' : 'Arabic name'}</span><input value={categoryForm.name_ar} onChange={(e) => setCategoryForm((c) => ({ ...c, name_ar: e.target.value }))} /></label><label className="field-block"><span>{language === 'ar' ? 'الاسم بالانجليزية' : 'English name'}</span><input dir="ltr" value={categoryForm.name_en} onChange={(e) => setCategoryForm((c) => ({ ...c, name_en: e.target.value }))} /></label></div><label className="field-block"><span>{language === 'ar' ? 'الوصف بالعربية' : 'Arabic description'}</span><textarea rows={2} value={categoryForm.description_ar} onChange={(e) => setCategoryForm((c) => ({ ...c, description_ar: e.target.value }))} /></label><label className="field-block"><span>{language === 'ar' ? 'الوصف بالانجليزية' : 'English description'}</span><textarea rows={2} dir="ltr" value={categoryForm.description_en} onChange={(e) => setCategoryForm((c) => ({ ...c, description_en: e.target.value }))} /></label>
+    {tab === 'categories' && <div className="mt-5 grid gap-4 lg:grid-cols-[.9fr_1.1fr]"><section className="content-panel p-5 sm:p-6"><h2 className="font-black">{language === 'ar' ? 'اضافة او تعديل قسم' : 'Add or edit category'}</h2><p className="muted-text mt-1 text-[11px]">{language === 'ar' ? 'اختر البيانات التي ستظهر للمستخدم في صفحة الاستكشاف' : 'Choose the data shown in Explore'}</p><div className="mt-5 space-y-4"><label className="field-block"><span>{language === 'ar' ? 'عنوان القسم في الرابط' : 'Category URL name'}</span><input dir="ltr" value={categoryForm.slug} onChange={(e) => setCategoryForm((c) => ({ ...c, slug: e.target.value }))} placeholder="web3" /></label><div className="grid gap-4 sm:grid-cols-2"><label className="field-block"><span>{language === 'ar' ? 'الاسم بالعربية' : 'Arabic name'}</span><input value={categoryForm.name_ar} onChange={(e) => setCategoryForm((c) => ({ ...c, name_ar: e.target.value }))} /></label><label className="field-block"><span>{language === 'ar' ? 'الاسم بالانجليزية' : 'English name'}</span><input dir="ltr" value={categoryForm.name_en} onChange={(e) => setCategoryForm((c) => ({ ...c, name_en: e.target.value }))} /></label></div><label className="field-block"><span>{language === 'ar' ? 'الوصف بالعربية' : 'Arabic description'}</span><textarea rows={2} value={categoryForm.description_ar} onChange={(e) => setCategoryForm((c) => ({ ...c, description_ar: e.target.value }))} /></label><label className="field-block"><span>{language === 'ar' ? 'الوصف بالانجليزية' : 'English description'}</span><textarea rows={2} dir="ltr" value={categoryForm.description_en} onChange={(e) => setCategoryForm((c) => ({ ...c, description_en: e.target.value }))} /></label>
           <div><p className="mb-2 text-xs font-black text-slate-500">{language === 'ar' ? 'ايقونة القسم' : 'Category icon'}</p><div className="grid grid-cols-3 gap-2 sm:grid-cols-5">{categoryIcons.map(([id, Icon]) => <button type="button" key={id} onClick={() => setCategoryForm((c) => ({ ...c, icon: id }))} className={`flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border px-2 text-[10px] font-black transition ${categoryForm.icon === id ? 'border-cyan-400 bg-cyan-400/10 text-cyan-500' : 'border-slate-200/60 bg-slate-100/50 text-slate-500 dark:border-white/10 dark:bg-white/[0.03]'}`}><Icon className="h-5 w-5" /><span>{categoryIconLabels[id][language]}</span></button>)}</div></div>
           <div className="grid gap-4 sm:grid-cols-2"><label className="field-block"><span>{language === 'ar' ? 'ترتيب الظهور' : 'Display order'}</span><input type="number" value={categoryForm.sort_order} onChange={(e) => setCategoryForm((c) => ({ ...c, sort_order: Number(e.target.value) }))} /></label><label className="toggle-tile self-end"><input type="checkbox" checked={categoryForm.is_active} onChange={(e) => setCategoryForm((c) => ({ ...c, is_active: e.target.checked }))} />{language === 'ar' ? 'القسم مفعل' : 'Category active'}</label></div><button className="primary-button w-full" onClick={() => void saveCategory()}><Save className="h-4 w-4" />{language === 'ar' ? 'حفظ القسم' : 'Save category'}</button></div></section><section className="space-y-2">{categories.map((category) => { const CategoryIcon = categoryIcon(category.icon); return <div key={category.id} className="content-panel flex items-center gap-3 p-4"><CategoryIcon className="h-5 w-5 text-cyan-500" /><div className="min-w-0 flex-1"><p className="font-black">{language === 'ar' ? category.name_ar : category.name_en}</p><p className="text-[10px] font-semibold text-slate-500">{category.slug} · {categoryIconLabels[category.icon]?.[language] || category.icon}</p></div><button className="secondary-button" onClick={() => setCategoryForm({ id: category.id, slug: category.slug, name_ar: category.name_ar, name_en: category.name_en, description_ar: category.description_ar || '', description_en: category.description_en || '', icon: category.icon, sort_order: category.sort_order, is_active: category.is_active })}>{language === 'ar' ? 'تعديل' : 'Edit'}</button></div>})}</section></div>}
 
+    {tab === 'developer' && <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_1fr]">
+      <section className="content-panel p-5 sm:p-6">
+        <div className="flex items-start gap-3"><div className="soft-icon flex h-11 w-11 items-center justify-center rounded-2xl"><UserCog className="h-5 w-5" /></div><div><h2 className="font-black">{language === 'ar' ? 'إعدادات إدراج المطورين' : 'Developer listing settings'}</h2><p className="muted-text mt-1 text-[11px] font-semibold">{language === 'ar' ? 'تحكم في استقبال التطبيقات والرسوم والحدود لكل مطور' : 'Control app submissions fees and account limits'}</p></div></div>
+        <div className="mt-5 space-y-4">
+          <label className="toggle-tile"><input type="checkbox" checked={developerSettings.listing_enabled} onChange={(e) => setDeveloperSettings((c) => ({ ...c, listing_enabled: e.target.checked }))} />{language === 'ar' ? 'السماح بطلبات إدراج جديدة' : 'Accept new app submissions'}</label>
+          <label className="toggle-tile"><input type="checkbox" checked={developerSettings.fee_enabled} onChange={(e) => setDeveloperSettings((c) => ({ ...c, fee_enabled: e.target.checked }))} />{language === 'ar' ? 'تفعيل رسوم الإدراج' : 'Enable listing fee'}</label>
+          <label className="field-block"><span>{language === 'ar' ? 'رسوم الإدراج بعملة Pi' : 'Listing fee in Pi'}</span><input type="number" min="0" step="0.01" value={developerSettings.fee_amount} disabled={!developerSettings.fee_enabled} onChange={(e) => setDeveloperSettings((c) => ({ ...c, fee_amount: Number(e.target.value) }))} /></label>
+          <div className="grid gap-4 sm:grid-cols-2"><label className="field-block"><span>{language === 'ar' ? 'الحد الأقصى للتطبيقات لكل مطور' : 'Maximum apps per developer'}</span><input type="number" min="1" value={developerSettings.max_apps_per_developer} onChange={(e) => setDeveloperSettings((c) => ({ ...c, max_apps_per_developer: Number(e.target.value) }))} /></label><label className="field-block"><span>{language === 'ar' ? 'الحد الأقصى للطلبات النشطة' : 'Maximum active review requests'}</span><input type="number" min="1" value={developerSettings.max_pending_submissions} onChange={(e) => setDeveloperSettings((c) => ({ ...c, max_pending_submissions: Number(e.target.value) }))} /></label></div>
+          <button className="primary-button w-full" onClick={() => void saveDeveloperSettings()}><Save className="h-4 w-4" />{language === 'ar' ? 'حفظ إعدادات المطورين' : 'Save developer settings'}</button>
+        </div>
+      </section>
+      <section className="content-panel p-5 sm:p-6"><h3 className="font-black">{language === 'ar' ? 'طريقة العمل' : 'How it works'}</h3><div className="mt-4 space-y-3 text-xs font-semibold leading-6 text-slate-500"><p>{language === 'ar' ? 'رسوم الإدراج تطبق على التطبيق الجديد فقط ولا تطبق على تحديث تطبيق منشور' : 'The listing fee applies only to new apps and not updates to published apps'}</p><p>{language === 'ar' ? 'السعر يحفظ داخل الطلب عند إنشائه لذلك تغيير السعر لا يؤثر على الطلبات السابقة' : 'The fee is saved with each request so later price changes do not affect existing requests'}</p><p>{language === 'ar' ? 'طلبات الإدراج المدفوعة لا تصبح قابلة للمراجعة إلا بعد تأكيد الدفع' : 'Paid listing requests become reviewable only after payment is confirmed'}</p></div></section>
+    </div>}
+
+
     {tab === 'submissions' && <div className="mt-5"><div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto">{(['pending','changes_requested','approved','rejected','all'] as const).map((status) => <button key={status} onClick={() => setSubmissionFilter(status)} className={`category-chip ${submissionFilter === status ? 'category-chip-active' : ''}`}>{status === 'all' ? (language === 'ar' ? 'الكل' : 'All') : status === 'pending' ? (language === 'ar' ? 'قيد المراجعة' : 'Pending') : status === 'changes_requested' ? (language === 'ar' ? 'يحتاج تعديلات' : 'Changes requested') : status === 'approved' ? (language === 'ar' ? 'تمت الموافقة' : 'Approved') : (language === 'ar' ? 'مرفوض' : 'Rejected')}</button>)}</div><div className="space-y-3">{filteredSubmissions.map((item) => {
-      const reviewable = item.status === 'pending' || item.status === 'changes_requested';
-      return <section key={item.id} className="content-panel p-4 sm:p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-black">{item.app_name}</h3><span className="pill">v{item.app_version || '1.0.0'}</span><span className="pill">{item.submission_type === 'update' ? (language === 'ar' ? 'تحديث تطبيق' : 'App update') : (language === 'ar' ? 'ادراج جديد' : 'New listing')}</span><span className="pill">{item.status === 'pending' ? (language === 'ar' ? 'قيد المراجعة' : 'Pending') : item.status === 'changes_requested' ? (language === 'ar' ? 'يحتاج تعديلات' : 'Changes requested') : item.status === 'approved' ? (language === 'ar' ? 'تمت الموافقة' : 'Approved') : (language === 'ar' ? 'مرفوض' : 'Rejected')}</span></div><p className="mt-2 break-all text-[10px] font-semibold text-slate-500" dir="ltr">{item.website_url}</p><p className="mt-3 text-xs font-semibold leading-6 text-slate-600 dark:text-slate-300">{item.description_ar}</p><div className="mt-3 flex flex-wrap gap-2"><span className="pill">{language === 'ar' ? 'الدول' : 'Countries'} {item.countries.map((code) => code === 'ALL' ? (language === 'ar' ? 'الكل' : 'All') : code).join(' ')}</span>{item.notes && <span className="pill">{language === 'ar' ? 'ملاحظة المطور' : 'Developer note'} {item.notes}</span>}{item.review_note && <span className="pill">{language === 'ar' ? 'ملاحظة المراجعة' : 'Review note'} {item.review_note}</span>}</div></div>{reviewable && <div className="flex shrink-0 flex-wrap gap-2"><button className="primary-button" onClick={() => void reviewSubmission(item, 'approved')}><Check className="h-4 w-4" />{language === 'ar' ? 'موافقة' : 'Approve'}</button><button className="secondary-button" onClick={() => void reviewSubmission(item, 'changes_requested')}>{language === 'ar' ? 'طلب تعديلات' : 'Request changes'}</button><button className="danger-button" onClick={() => void reviewSubmission(item, 'rejected')}><X className="h-4 w-4" />{language === 'ar' ? 'رفض' : 'Reject'}</button></div>}</div></section>;
+      const paymentReady = item.submission_type === 'update' || ['paid', 'not_required'].includes(item.payment_status || 'not_required');
+      const reviewable = paymentReady && (item.status === 'pending' || item.status === 'changes_requested');
+      return <section key={item.id} className="content-panel p-4 sm:p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-black">{item.app_name}</h3><span className="pill">v{item.app_version || '1.0.0'}</span><span className="pill">{item.submission_type === 'update' ? (language === 'ar' ? 'تحديث تطبيق' : 'App update') : (language === 'ar' ? 'ادراج جديد' : 'New listing')}</span><span className="pill">{item.status === 'pending' ? (language === 'ar' ? 'قيد المراجعة' : 'Pending') : item.status === 'changes_requested' ? (language === 'ar' ? 'يحتاج تعديلات' : 'Changes requested') : item.status === 'approved' ? (language === 'ar' ? 'تمت الموافقة' : 'Approved') : (language === 'ar' ? 'مرفوض' : 'Rejected')}</span></div><p className="mt-2 break-all text-[10px] font-semibold text-slate-500" dir="ltr">{item.website_url}</p><p className="mt-3 text-xs font-semibold leading-6 text-slate-600 dark:text-slate-300">{item.description_ar}</p><div className="mt-3 flex flex-wrap gap-2">{item.submission_type === 'new' && <><span className="pill">{language === 'ar' ? 'الدفع' : 'Payment'} {paymentStatusLabel(item.payment_status, language)}</span>{Number(item.listing_price || 0) > 0 && <span className="pill">{Number(item.listing_price).toFixed(2)} Pi</span>}</>}<span className="pill">{language === 'ar' ? 'الدول' : 'Countries'} {item.countries.map((code) => code === 'ALL' ? (language === 'ar' ? 'الكل' : 'All') : code).join(' ')}</span>{item.notes && <span className="pill">{language === 'ar' ? 'ملاحظة المطور' : 'Developer note'} {item.notes}</span>}{item.review_note && <span className="pill">{language === 'ar' ? 'ملاحظة المراجعة' : 'Review note'} {item.review_note}</span>}</div></div>{reviewable && <div className="flex shrink-0 flex-wrap gap-2"><button className="primary-button" onClick={() => void reviewSubmission(item, 'approved')}><Check className="h-4 w-4" />{language === 'ar' ? 'موافقة' : 'Approve'}</button><button className="secondary-button" onClick={() => void reviewSubmission(item, 'changes_requested')}>{language === 'ar' ? 'طلب تعديلات' : 'Request changes'}</button><button className="danger-button" onClick={() => void reviewSubmission(item, 'rejected')}><X className="h-4 w-4" />{language === 'ar' ? 'رفض' : 'Reject'}</button></div>}</div></section>;
     })}{filteredSubmissions.length === 0 && <div className="empty-panel">{language === 'ar' ? 'لا توجد طلبات في هذه الحالة' : 'No submissions in this state'}</div>}</div></div>}
   </div>;
 }

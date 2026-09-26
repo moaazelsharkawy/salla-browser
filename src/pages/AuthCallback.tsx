@@ -46,7 +46,7 @@ export default function AuthCallback() {
         setState('offer_passkey');
       } catch (error) {
         setState('error');
-        setMessage(error instanceof Error ? error.message : 'Developer account setup failed');
+        setMessage(ar ? 'تعذر تجهيز حساب المطور حاول مرة أخرى' : 'Developer account setup failed Please try again');
       }
     })();
   }, [ar, loading, navigate, next, refreshProfile, session]);
@@ -78,14 +78,14 @@ export default function AuthCallback() {
         </div>
 
         <h1 className="mt-5 text-center text-2xl font-black">
-          {state === 'working' ? (ar ? 'جار تجهيز حساب المطور' : 'Setting up your developer account') : state === 'success' ? (ar ? 'تم تفعيل البصمة' : 'Passkey enabled') : state === 'error' ? (ar ? 'تعذر إكمال التسجيل' : 'Setup could not be completed') : (ar ? 'فعل الدخول بالبصمة' : 'Enable passkey sign-in')}
+          {state === 'working' ? (ar ? 'جار تجهيز حساب المطور' : 'Setting up your developer account') : state === 'success' ? (ar ? 'تم تفعيل الدخول الآمن' : 'Secure sign in enabled') : state === 'error' ? (ar ? 'تعذر إكمال التسجيل' : 'Setup could not be completed') : (ar ? 'فعل الدخول الآمن' : 'Enable secure sign in')}
         </h1>
 
         <p className="muted-text mt-2 text-center text-xs font-semibold leading-6">
           {state === 'offer_passkey' || state === 'registering'
             ? (ar ? 'استخدم بصمة الهاتف أو قفل الجهاز للدخول السريع والآمن في المرات القادمة بيانات البصمة نفسها لا تغادر جهازك' : 'Use your device biometrics or screen lock for fast, secure sign-in next time. Your biometric data never leaves your device.')
             : state === 'working'
-              ? (ar ? 'ثوان قليلة ونجهز صلاحيات المطور ونفحص دعم Passkey' : 'This only takes a moment while we prepare developer access and check passkey support.')
+              ? (ar ? 'ثوان قليلة ونجهز حساب المطور والدخول الآمن' : 'This only takes a moment while we prepare developer access and secure sign in.')
               : ''}
         </p>
 

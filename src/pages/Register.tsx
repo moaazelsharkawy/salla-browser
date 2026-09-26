@@ -16,7 +16,7 @@ export default function Register() {
   const google = async () => {
     if (!isSupabaseConfigured) return setMessage(authUnavailable);
     try { setLoading(true); setMessage(null); await signInWithGoogle('/profile'); }
-    catch (error) { setLoading(false); const raw = error instanceof Error ? error.message : ''; setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (raw || (ar ? 'تعذر إنشاء الحساب باستخدام Google' : 'Google sign-up failed.'))); }
+    catch (error) { setLoading(false); const raw = error instanceof Error ? error.message : ''; setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (ar ? 'تعذر إنشاء الحساب باستخدام Google حاول مرة أخرى' : 'Google sign up failed Please try again')); }
   };
 
   const register = async () => {
@@ -24,7 +24,7 @@ export default function Register() {
     setLoading(true); setMessage(null);
     const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { data: { display_name: name.trim(), account_type: 'developer' } } });
     setLoading(false);
-    if (error) return setMessage(error.message);
+    if (error) return setMessage(ar ? 'تعذر إنشاء الحساب تحقق من البيانات أو استخدم بريدا آخر' : 'Account could not be created Check your details or use another email');
     if (!data.session) {
       setMessage(ar ? 'تم إنشاء حساب المطور راجع بريدك لتأكيده ثم سجل الدخول وبعدها سيظهر لك تفعيل البصمة' : 'Developer account created. Confirm your email, then sign in. Passkey setup will be offered after sign-in.');
       return;
@@ -33,7 +33,7 @@ export default function Register() {
   };
 
   return <div className="auth-page min-h-screen px-4 py-10"><div className="mx-auto max-w-md"><div className="mb-8 flex justify-center"><Brand /></div><section className="content-panel p-5 sm:p-7">
-    <div className="soft-icon auth-hero-icon mx-auto flex h-20 w-20 items-center justify-center rounded-[1.65rem]"><UserPlus className="h-9 w-9" /></div><h1 className="mt-5 text-center text-2xl font-black">{ar ? 'إنشاء حساب مطور' : 'Create developer account'}</h1><div className="developer-note mt-3"><ShieldCheck className="h-5 w-5" /><p>{ar ? 'الحساب مخصص للمطورين وأصحاب التطبيقات فقط بعد نجاح التسجيل سنعرض تفعيل Passkey أو بصمة الجهاز للدخول السريع' : 'Accounts are only for developers and app owners. After sign-up, we will offer passkey or device biometric setup for faster sign-in.'}</p></div>
+    <div className="soft-icon auth-hero-icon mx-auto flex h-20 w-20 items-center justify-center rounded-[1.65rem]"><UserPlus className="h-9 w-9" /></div><h1 className="mt-5 text-center text-2xl font-black">{ar ? 'إنشاء حساب مطور' : 'Create developer account'}</h1><div className="developer-note mt-3"><ShieldCheck className="h-5 w-5" /><p>{ar ? 'الحساب مخصص للمطورين وأصحاب التطبيقات فقط بعد نجاح التسجيل سنعرض تفعيل الدخول الآمن ببصمة الجهاز للدخول السريع' : 'Accounts are only for developers and app owners. After sign-up, we will offer secure device biometric sign in for faster sign-in.'}</p></div>
 
     <button disabled={loading} className="google-button mt-6 w-full" onClick={() => void google()}><GoogleMark />{ar ? 'إنشاء الحساب باستخدام Google' : 'Create account with Google'}</button>
     <div className="auth-divider"><span>{ar ? 'أو بالبريد' : 'or with email'}</span></div>

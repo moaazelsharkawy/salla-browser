@@ -35,7 +35,7 @@ export default function BrowserPage() {
     void run();
   }, [appSlug, user?.id]);
 
-  if (loading) return <div className="page-container py-20 text-center muted-text">Loading...</div>;
+  if (loading) return <div className="page-container py-20 text-center muted-text"><span className="soft-spinner" />{language === 'ar' ? 'جاري فتح التطبيق' : 'Loading app'}</div>;
 
   if (!app) {
     return (
@@ -75,7 +75,7 @@ export default function BrowserPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1600px] px-0 sm:px-3 sm:py-3">
+    <div className="browser-page-wrap">
       <BrowserFrame url={app.website_url} title={app.name} />
     </div>
   );

@@ -4,6 +4,7 @@ export type HealthStatus = 'online' | 'maintenance' | 'new' | 'updated' | 'offli
 export type EmbedMode = 'iframe' | 'external';
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'changes_requested';
 export type SubmissionType = 'new' | 'update';
+export type ListingPaymentStatus = 'not_required' | 'awaiting_payment' | 'paid' | 'refunded' | 'payment_failed';
 export type UserRole = 'user' | 'developer' | 'admin';
 
 export interface Profile {
@@ -80,7 +81,24 @@ export interface AppSubmission {
   reviewed_by: string | null;
   reviewed_at: string | null;
   created_at: string;
+  payment_status?: ListingPaymentStatus;
+  listing_price?: number;
+  payment_currency?: string;
+  payment_transaction_id?: string | null;
+  payment_checkout_url?: string | null;
+  payment_started_at?: string | null;
+  paid_at?: string | null;
+  refunded_amount?: number;
   updated_at?: string;
+}
+
+export interface DeveloperListingSettings {
+  listing_enabled: boolean;
+  fee_enabled: boolean;
+  fee_amount: number;
+  currency: 'pi';
+  max_apps_per_developer: number;
+  max_pending_submissions: number;
 }
 
 export interface Announcement {

@@ -1,2 +1,5 @@
 [functions.passkey]
 verify_jwt = false
+
+[functions.salla-listing-webhook]
+verify_jwt = false

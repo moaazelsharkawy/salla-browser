@@ -1387,3 +1387,81 @@ body { overscroll-behavior-x: none; }
 @media (max-width: 640px) {
   .brand-logo-shell { width: 40px; height: 40px; border-radius: 12px; }
 }
+
+/* ===== v012 immersive browser and lightweight loading ===== */
+.app-main-browser-mode {
+  padding-bottom: 0 !important;
+  min-height: calc(100dvh - 70px);
+  overflow: hidden !important;
+}
+.app-shell-browser-mode {
+  height: 100dvh;
+  overflow: hidden;
+}
+.browser-page-wrap {
+  width: 100%;
+  height: calc(100dvh - 70px);
+  overflow: hidden;
+}
+.browser-frame-immersive {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+}
+.browser-frame-immersive .browser-toolbar {
+  min-height: 54px;
+  flex: 0 0 54px;
+}
+.browser-viewport {
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+.browser-iframe {
+  display: block;
+  height: 100% !important;
+  min-height: 100% !important;
+  overflow: hidden;
+}
+.browser-loading {
+  background: color-mix(in srgb, var(--app-bg) 94%, var(--app-accent-soft) 6%);
+}
+.browser-loader-icon,
+.soft-spinner {
+  animation: salla-soft-spin .8s linear infinite;
+}
+.soft-spinner {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline-end: .55rem;
+  border: 2px solid color-mix(in srgb, var(--app-muted-2) 30%, transparent 70%);
+  border-top-color: var(--app-cyan);
+  border-radius: 999px;
+}
+@keyframes salla-soft-spin { to { transform: rotate(360deg); } }
+.listing-fee-card,
+.developer-listing-warning {
+  border-radius: 1.2rem;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--app-accent-soft) 65%, var(--app-violet-soft) 35%);
+}
+.developer-listing-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  color: #b77905;
+  background: rgba(245, 158, 11, .12);
+}
+.developer-listing-warning svg { flex: 0 0 auto; margin-top: .12rem; }
+.developer-listing-warning strong { color: var(--app-text); font-size: .8rem; font-weight: 900; }
+.developer-listing-warning p { margin-top: .25rem; color: var(--app-muted); font-size: .7rem; font-weight: 700; line-height: 1.7; }
+
+@media (max-width: 640px) {
+  .browser-page-wrap { height: calc(100dvh - 68px); }
+  .app-main-browser-mode { min-height: calc(100dvh - 68px); }
+  .browser-frame-immersive .browser-toolbar { min-height: 52px; flex-basis: 52px; }
+}

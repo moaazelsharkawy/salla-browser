@@ -28,7 +28,7 @@ export default function Login() {
     } catch (error) {
       setLoading(false);
       const raw = error instanceof Error ? error.message : '';
-      setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (raw || (ar ? 'تعذر تسجيل الدخول باستخدام Google' : 'Google sign-in failed.')));
+      setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (ar ? 'تعذر تسجيل الدخول باستخدام Google حاول مرة أخرى' : 'Google sign in failed Please try again'));
     }
   };
 
@@ -36,7 +36,7 @@ export default function Login() {
     if (!isSupabaseConfigured) return setMessage(authUnavailable);
     setLoading(true); setMessage(null);
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (error) { setLoading(false); setMessage(error.message); return; }
+    if (error) { setLoading(false); setMessage(ar ? 'البريد أو كلمة المرور غير صحيحة أو تعذر تسجيل الدخول' : 'Email or password is incorrect or sign in could not be completed'); return; }
     try {
       await activateDeveloperAccount();
       await refreshProfile();
@@ -52,7 +52,7 @@ export default function Login() {
       navigate(next, { replace: true });
     } catch (error) {
       const raw = error instanceof Error ? error.message : '';
-      setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (raw || (ar ? 'تعذر تجهيز حساب المطور' : 'Developer account setup failed.')));
+      setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (ar ? 'تعذر تجهيز حساب المطور حاول مرة أخرى' : 'Developer account setup failed Please try again'));
     } finally { setLoading(false); }
   };
 
@@ -60,7 +60,7 @@ export default function Login() {
     if (!isSupabaseConfigured) return setMessage(authUnavailable);
     if (!email.trim()) return setMessage(ar ? 'اكتب بريد حساب المطور المرتبط بالبصمة أولا' : 'Enter your developer email first.');
     try { setLoading(true); setMessage(null); await signInWithPasskey(email.trim()); await activateDeveloperAccount(); await refreshProfile(); navigate(next, { replace: true }); }
-    catch (error) { const raw = error instanceof Error ? error.message : ''; setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (raw || (ar ? 'تعذر الدخول بالبصمة' : 'Passkey sign-in failed.'))); }
+    catch (error) { const raw = error instanceof Error ? error.message : ''; setMessage(raw === 'SUPABASE_NOT_CONFIGURED' ? authUnavailable : (ar ? 'تعذر الدخول الآمن على هذا الجهاز' : 'Secure sign in failed on this device')); }
     finally { setLoading(false); }
   };
 

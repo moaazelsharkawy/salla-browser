@@ -1,28 +1,32 @@
 import type { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+
+function LoadingState() {
+  const { language } = useLanguage();
+  return <div className="page-container py-20 text-center muted-text"><span className="soft-spinner" />{language === 'ar' ? 'جاري التحميل' : 'Loading'}</div>;
+}
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
-  const location = useLocation();
-  if (loading) return <div className="page-container py-20 text-center muted-text">Loading...</div>;
-  if (!user) return <Navigate to={`/login?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  if (loading) return <LoadingState />;
+  if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
 export function DeveloperRoute({ children }: { children: ReactNode }) {
-  const { user, isDeveloper, loading } = useAuth();
-  const location = useLocation();
-  if (loading) return <div className="page-container py-20 text-center muted-text">Loading...</div>;
-  if (!user) return <Navigate to={`/login?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
-  if (!isDeveloper) return <Navigate to="/" replace />;
+  const { user, profile, loading } = useAuth();
+  if (loading) return <LoadingState />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!profile || !['developer', 'admin'].includes(profile.role)) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
 export function AdminRoute({ children }: { children: ReactNode }) {
-  const { user, isAdmin, loading } = useAuth();
-  if (loading) return <div className="page-container py-20 text-center muted-text">Loading...</div>;
+  const { user, profile, loading } = useAuth();
+  if (loading) return <LoadingState />;
   if (!user) return <Navigate to="/login" replace />;
-  if (!isAdmin) return <Navigate to="/" replace />;
+  if (profile?.role !== 'admin') return <Navigate to="/" replace />;
   return <>{children}</>;
 }
